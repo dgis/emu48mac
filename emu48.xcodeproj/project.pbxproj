@@ -432,9 +432,15 @@
 /* Begin PBXProject section */
 		2A37F4A9FDCFA73011CA2CEA /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+			};
 			buildConfigurationList = E526BA290F159EBF00BB73D6 /* Build configuration list for PBXProject "emu48" */;
 			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				en,
+			);
 			mainGroup = 2A37F4AAFDCFA73011CA2CEA /* emu48mac */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -617,9 +623,11 @@
 					Core,
 				);
 				INFOPLIST_FILE = macosx/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
 				PRODUCT_NAME = Emu48;
+				SDKROOT = macosx10.8;
 				SECTORDER_FLAGS = "";
 				WRAPPER_EXTENSION = app;
 			};
@@ -628,8 +636,7 @@
 		E526BA270F159EBF00BB73D6 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
-				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -640,9 +647,11 @@
 					Core,
 				);
 				INFOPLIST_FILE = macosx/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_LDFLAGS = "";
 				PREBINDING = YES;
 				PRODUCT_NAME = Emu48;
+				SDKROOT = macosx10.8;
 				SECTORDER_FLAGS = "";
 				WRAPPER_EXTENSION = app;
 			};

@@ -100,8 +100,6 @@
 			<false/>
 		</dict>
 		<dict>
-			<key>CFBundleTypeIconFile</key>
-			<string>EOBJ</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>hp</string>
@@ -109,6 +107,8 @@
 				<string>lib</string>
 				<string>LIB</string>
 			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>EOBJ</string>
 			<key>CFBundleTypeName</key>
 			<string>HP Stack Object</string>
 			<key>CFBundleTypeOSTypes</key>
@@ -143,6 +143,8 @@
 	<string>EM48</string>
 	<key>CFBundleVersion</key>
 	<string>Prerelease</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.developer-tools</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>

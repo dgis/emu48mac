@@ -1133,7 +1133,7 @@ void AddToLog(NSString *szString)
     if(nil==szString)
         return;
 
-    [LogController appendLog: szString];
+    [NSController appendLog: szString];
 #endif
 }
 
