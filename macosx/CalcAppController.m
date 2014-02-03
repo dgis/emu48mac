@@ -29,7 +29,7 @@ VOID UpdateWindowStatus(VOID){}
     NSOpenPanel *oPanel = [NSOpenPanel openPanel];
     [oPanel setResolvesAliases: YES];
     [oPanel setAllowsMultipleSelection: NO];
-    result = [oPanel runModalForTypes: nil];
+    result = [oPanel runModal];
 }
 
 - (IBAction)showDebugger:(id)sender

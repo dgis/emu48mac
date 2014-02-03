@@ -562,7 +562,12 @@ CalcBackend *gSharedCalcBackend = nil;
 
 - (BOOL)readFromObject:(NSString *)aObjectFile error:(NSError **)outError
 {
-    NSData *data = [[NSData alloc] initWithContentsOfFile:aObjectFile options:(NSMappedRead | NSUncachedRead) error:outError];
+    return [self readFromObjectURL:[NSURL URLWithString:aObjectFile] error:outError];
+}
+
+- (BOOL)readFromObjectURL:(NSURL *)aObjectURL error:(NSError **)outError
+{
+    NSData *data = [[NSData alloc] initWithContentsOfURL:aObjectURL options:(NSMappedRead | NSUncachedRead) error:outError];
     CalcStack *stack = nil;
     if (data)
     {
@@ -577,12 +582,17 @@ CalcBackend *gSharedCalcBackend = nil;
 
 - (BOOL)saveObjectAs:(NSString *)aObjectFile error:(NSError **)outError
 {
+    return [self saveObjectAsURL:[NSURL URLWithString:aObjectFile] error:outError];
+}
+
+- (BOOL)saveObjectAsURL:(NSURL *)aObjectURL error:(NSError **)outError
+{
     BOOL result = NO;
     CalcStack *stack = [[CalcStack alloc] initWithError: outError];
     if (stack)
     {
         NSData *object = [stack objectRepresentation];
-        result = [object writeToFile:aObjectFile options:NSAtomicWrite error:outError];
+        result = [object writeToURL:aObjectURL options:NSAtomicWrite error:outError];
         [stack release];
     }
     return result;

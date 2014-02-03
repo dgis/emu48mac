@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 42;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -433,9 +433,10 @@
 		2A37F4A9FDCFA73011CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastUpgradeCheck = 0500;
 			};
 			buildConfigurationList = E526BA290F159EBF00BB73D6 /* Build configuration list for PBXProject "emu48" */;
-			compatibilityVersion = "Xcode 2.4";
+			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 1;
 			knownRegions = (
@@ -610,6 +611,7 @@
 		E526BA260F159EBF00BB73D6 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -623,11 +625,9 @@
 					Core,
 				);
 				INFOPLIST_FILE = macosx/Info.plist;
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_LDFLAGS = "";
 				PREBINDING = NO;
 				PRODUCT_NAME = Emu48;
-				SDKROOT = macosx10.8;
 				SECTORDER_FLAGS = "";
 				WRAPPER_EXTENSION = app;
 			};
@@ -636,7 +636,7 @@
 		E526BA270F159EBF00BB73D6 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -647,11 +647,9 @@
 					Core,
 				);
 				INFOPLIST_FILE = macosx/Info.plist;
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_LDFLAGS = "";
 				PREBINDING = YES;
 				PRODUCT_NAME = Emu48;
-				SDKROOT = macosx10.8;
 				SECTORDER_FLAGS = "";
 				WRAPPER_EXTENSION = app;
 			};
@@ -660,7 +658,7 @@
 		E526BA2A0F159EBF00BB73D6 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = macosx;
 			};
 			name = Development;
 		};
@@ -668,7 +666,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = macosx;
 			};
 			name = Deployment;
 		};

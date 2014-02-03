@@ -1,7 +1,15 @@
-Emu48mac is a port of the excellent Emu48 HP calculator emulator for OS X.
+Emu48 for Mac OS X
+==================
 
-The emulator ran fine until OS X 10.6 but unfortunately support for recent versions of OS X is lacking.
+This is a fork of [dirkpitt2050][].<br/>
+More info: [Emu48 homepage][]<br/>
+License: GNU General Public License version 2.0 ([GPLv2][])
 
-This is a branch of the Sourceforge code in an attempt to get the compilation process running on OS X Maverick.
-There are some depricated code sections that need to be replaced. Any Xcode experts interested in restoring the
-emulator of the iconic HP calculators?
+To compile you'll need [ROM images and sample KML skins][Calculators Folder].<br/>
+Extract into the same folder as Emu48.<br/>
+NOTE: Calculator ROM images are copyrighted by HP and KMLs by their respective authors
+
+[dirkpitt2050]: http://emu48mac.sourceforge.net/
+[Emu48 homepage]: http://emu48mac.sourceforge.net/
+[GPLv2]: http://www.gnu.org/licenses/gpl-2.0.html
+[Calculators Folder]: https://dl.dropboxusercontent.com/u/11524769/emu48mac/Calculators.tar.gz

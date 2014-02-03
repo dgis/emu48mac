@@ -1129,7 +1129,10 @@ quit:
 // Appends a string and a newline
 void AddToLog(NSString *szString)
 {
-#if !TARGET_OS_IPHONE
+  // TODO: check this mod
+#warning TODO
+#ifndef TARGET_OS_IPHONE
+//#if !TARGET_OS_IPHONE
     if(nil==szString)
         return;
 

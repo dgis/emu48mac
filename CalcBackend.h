@@ -90,8 +90,10 @@
 - (BOOL)readFromState:(NSString *)aStateFile error:(NSError **)outError;
 - (BOOL)saveStateAs:(NSString *)aStateFile error:(NSError **)outError;
 
-- (BOOL)readFromObject:(NSString *)aObjectFile error:(NSError **)outError;
-- (BOOL)saveObjectAs:(NSString *)aObjectFile error:(NSError **)outError;
+- (BOOL)readFromObject:(NSString *)aObjectFile error:(NSError **)outError DEPRECATED_ATTRIBUTE;
+- (BOOL)readFromObjectURL:(NSURL *)aObjectURL error:(NSError **)outError;
+- (BOOL)saveObjectAs:(NSString *)aObjectFile error:(NSError **)outError DEPRECATED_ATTRIBUTE;
+- (BOOL)saveObjectAsURL:(NSURL *)aObjectURL error:(NSError **)outError;
 
 - (void)backup;
 - (void)restore;

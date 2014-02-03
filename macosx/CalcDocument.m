@@ -31,11 +31,11 @@
     NSOpenPanel *panel = [NSOpenPanel openPanel];
     [panel setResolvesAliases: YES];
     [panel setAllowsMultipleSelection: NO];
-    result = [panel runModalForTypes: nil];
+    result = [panel runModal];
     if (result == NSOKButton)
     {
         NSError *err = nil;
-        if (![[CalcBackend sharedBackend] readFromObject:[panel filename] error:&err] && err)
+        if (![[CalcBackend sharedBackend] readFromObjectURL:[panel URL] error:&err] && err)
             [self presentError: err];
     }
 }
@@ -57,7 +57,7 @@
     if (result == NSOKButton)
     {
         NSError *err = nil;
-        if (![[CalcBackend sharedBackend] saveObjectAs:[panel filename] error:&err] && err)
+        if (![[CalcBackend sharedBackend] saveObjectAsURL:[panel URL] error:&err] && err)
             [self presentError: err];
     }
 }
@@ -115,7 +115,9 @@
         }
         return result;
     }
-    else if ([aType isEqualToString: @"KML File"])
+  // TODO: check here
+#warning TODO
+    else if ([aType isEqualToString: @"KML File"] || [aType isEqualToString: @"com.dw.emu48-kml"])
     {
         result = [[CalcBackend sharedBackend] makeUntitledCalcWithKml: [absoluteURL path] error:outError];
         if (result)
@@ -173,7 +175,12 @@
             {
                 parentPath = [parentPath stringByAppendingPathComponent: pathComp];
                 if (![fm fileExistsAtPath:parentPath isDirectory:&isFolder])
-                    [fm createDirectoryAtPath:parentPath attributes:nil];
+                {
+                    NSError *error = nil;
+                    [fm createDirectoryAtPath:parentPath withIntermediateDirectories:YES attributes:nil error:&error];
+                    if (error)
+                        NSLog(@"%@", [error localizedDescription]);
+                }
             }
         }
         else if (!isFolder)

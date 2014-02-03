@@ -32,11 +32,12 @@
     
     [oPanel setResolvesAliases: YES];
     [oPanel setAllowsMultipleSelection: NO];
-    result = [oPanel runModalForTypes: fileTypes];
+    [oPanel setAllowedFileTypes: fileTypes];
+    result = [oPanel runModal];
     
     if (result == NSOKButton)
     {
-        NSArray *filesToOpen = [oPanel filenames];
+        NSArray *filesToOpen = [oPanel URLs];
         NSString *aFile = [filesToOpen objectAtIndex:0];
         [[NSUserDefaults standardUserDefaults] setObject:aFile forKey:@"Port2Filename"];
     }
@@ -64,9 +65,9 @@
         if (blockIndex < 0 || blockIndex >= sizeof(BLOCK_SIZES))
             blockIndex = 0;
         int numBlocks = BLOCK_SIZES[blockIndex];
-        if (NewPort2([panel filename], numBlocks))
+        if (NewPort2([[panel URL] absoluteString], numBlocks))
         {
-            [[NSUserDefaults standardUserDefaults] setObject:[panel filename] forKey:@"Port2Filename"];
+            [[NSUserDefaults standardUserDefaults] setObject:[[panel URL] absoluteString] forKey:@"Port2Filename"];
         }
     }
 }
