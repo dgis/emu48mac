@@ -12,9 +12,13 @@
 #import "CalcBackend.h"
 #import "CalcView.h"
 #import "rawlcd.h"
+#import "engine.h"
+#import "EMU48.H"
+#import <objc/message.h>
 
-
-@implementation CalcDocument
+@implementation CalcDocument {
+    bool mustClose;
+}
 
 - (IBAction)backupCalc:(id)sender
 {
@@ -25,19 +29,37 @@
 {
 }
 
-- (IBAction)openObject:(id)sender
+- (void)openObjectCore
 {
-    int result;
     NSOpenPanel *panel = [NSOpenPanel openPanel];
     [panel setResolvesAliases: YES];
     [panel setAllowsMultipleSelection: NO];
-    result = [panel runModal];
-    if (result == NSOKButton)
+    NSInteger result = [panel runModal];
+    if (result == NSModalResponseOK)
     {
         NSError *err = nil;
         if (![[CalcBackend sharedBackend] readFromObjectURL:[panel URL] error:&err] && err)
             [self presentError: err];
     }
+}
+
+- (IBAction)openObject:(id)sender
+{
+    if([[NSUserDefaults standardUserDefaults] boolForKey:@"LoadObjectWarning"]) {
+        NSAlert *alert = [[NSAlert alloc] init];
+        [alert setInformativeText:@"Warning: Trying to load an object while the emulator is busy will certainly result in a memory lost. Before loading an object you should be sure that the calculator is not doing anything.\n"
+         @"Do you want to see this warning next time you try to load an object ?"];
+        [alert addButtonWithTitle:@"Cancel"];
+        [alert addButtonWithTitle:@"No"];
+        [alert addButtonWithTitle:@"Yes"];
+        [alert setAlertStyle:NSAlertStyleWarning];
+        NSModalResponse returnCode = [alert runModal];
+        if (returnCode == NSAlertFirstButtonReturn)
+            return;
+        else if(returnCode == NSAlertSecondButtonReturn)
+            [[NSUserDefaults standardUserDefaults] setBool:false forKey:@"LoadObjectWarning"];
+    }
+    [self openObjectCore];
 }
 
 - (IBAction)restoreCalc:(id)sender
@@ -48,13 +70,11 @@
 - (IBAction)saveObject:(id)sender
 {
     int result;
-    NSArray *types = [[NSDocumentController sharedDocumentController] fileExtensionsFromType: @"HP Stack Object"];
-    if (types && 0==[types count]) types = nil;
     NSSavePanel *panel = [NSSavePanel savePanel];
-    [panel setAllowedFileTypes: types];
+    [panel setAllowedFileTypes: @[@"com.dw.emu48-stack"]];
     [panel setCanSelectHiddenExtension: YES];
-    result = [panel runModal];
-    if (result == NSOKButton)
+    result = (int)[panel runModal];
+    if (result == NSModalResponseOK)
     {
         NSError *err = nil;
         if (![[CalcBackend sharedBackend] saveObjectAsURL:[panel URL] error:&err] && err)
@@ -62,6 +82,22 @@
     }
 }
 
+- (IBAction)resetCalc:(id)sender
+{
+    if (nState != SM_RUN)
+        return;
+    NSAlert *alert = [[NSAlert alloc] init];
+    [alert setInformativeText:@"Are you sure you want to press the Reset Button ?"];
+    [alert addButtonWithTitle:@"No"];
+    [alert addButtonWithTitle:@"Yes"];
+    [alert setAlertStyle:NSAlertStyleWarning];
+    if ([alert runModal] == NSAlertSecondButtonReturn)
+    {
+        SwitchToState(SM_SLEEP);
+        CpuReset();                            // register setting after Cpu Reset
+        SwitchToState(SM_RUN);
+    }
+}
 
 - (id)init
 {
@@ -75,8 +111,7 @@
 
 - (void)dealloc
 {
-    CalcBackend *backend = [CalcBackend sharedBackend];
-    [backend stop];
+    [[CalcBackend sharedBackend] stop];
     [super dealloc];
 }
 
@@ -93,20 +128,40 @@
     [backend setCalcView: calcView];
     [backend finishInitWithViewContainer:[controller window]
                                 lcdClass:[CalcRawLCD class]];
-    [backend performSelector:@selector(run) withObject:nil afterDelay:0.0];
+    //[backend performSelector:@selector(run) withObject:nil afterDelay:10.0];
+    [backend run];
     [self updateChangeCount: NSChangeDone];
+    
+    NSWindow * window = [calcView window];
+    if(window) {
+        if([[NSUserDefaults standardUserDefaults] boolForKey:@"AlwaysOnTop"])
+            [window setLevel:NSFloatingWindowLevel];
+        else
+            [window setLevel:NSNormalWindowLevel];
+    
+        if(Chipset.nPosX == 0 && Chipset.nPosY == 0) {
+            [window center];
+        } else {
+            NSPoint pos;
+            pos.x = Chipset.nPosX;
+            pos.y = Chipset.nPosY;
+            [window setFrameOrigin:pos];
+        }
+    }
 }
 
 - (BOOL)readFromURL:(NSURL *)absoluteURL ofType:(NSString *)aType error:(NSError **)outError
 {
+    // Needed for the revert!!! SwitchToState(SM_INVALID);
     BOOL result = NO;
-    if ([aType isEqualToString: @"Emu48 State"])
+    if ([aType hasPrefix: @"com.dw.emu48-state"])
     {
         [[NSFileManager defaultManager] changeCurrentDirectoryPath: [[NSBundle mainBundle] bundlePath]];
         result = [[CalcBackend sharedBackend] readFromState:[absoluteURL path] error:outError];
         if (result)
         {
-            [[NSApp delegate] populateChangeKmlMenu];
+            CalcAppController * appDelegate = [NSApp delegate];
+            [appDelegate populateChangeKmlMenu];
         }
         else
         {
@@ -115,14 +170,13 @@
         }
         return result;
     }
-  // TODO: check here
-#warning TODO
-    else if ([aType isEqualToString: @"KML File"] || [aType isEqualToString: @"com.dw.emu48-kml"])
+    else if ([aType isEqualToString: @"com.dw.emu48-kml"])
     {
         result = [[CalcBackend sharedBackend] makeUntitledCalcWithKml: [absoluteURL path] error:outError];
         if (result)
         {
-            [[NSApp delegate] populateChangeKmlMenu];
+            CalcAppController * appDelegate = [NSApp delegate];
+            [appDelegate populateChangeKmlMenu];
         }
         else
         {
@@ -139,22 +193,43 @@
 - (BOOL)writeToURL:(NSURL *)absoluteURL ofType:(NSString *)aType error:(NSError **)outError
 {
     BOOL result = NO;
-    if ([aType isEqualToString: @"Emu48 State"])
+    if ([aType hasPrefix: @"com.dw.emu48-state"])
     {
+        NSWindow * window = [calcView window];
+        if(window) {
+            Chipset.nPosX = window.frame.origin.x;
+            Chipset.nPosY = window.frame.origin.y;
+        }
         [[NSFileManager defaultManager] changeCurrentDirectoryPath: [[NSBundle mainBundle] bundlePath]];
         result = [[CalcBackend sharedBackend] saveStateAs:[absoluteURL path] error:outError];
         return result;
     }
-    
-    return [super writeToURL:absoluteURL ofType:aType error:outError];
+    return result;
+    //return [super writeToURL:absoluteURL ofType:aType error:outError];
 }
 
-- (BOOL)saveToURL:(NSURL *)absoluteURL ofType:(NSString *)aType forSaveOperation:(NSSaveOperationType)saveOperation error:(NSError **)outError
+//- (BOOL)saveToURL:(NSURL *)absoluteURL ofType:(NSString *)aType forSaveOperation:(NSSaveOperationType)saveOperation error:(NSError **)outError
+//{
+//    BOOL result = [super saveToURL:absoluteURL ofType:aType forSaveOperation:saveOperation error:outError];
+//    if (result)
+//        [self updateChangeCount: NSChangeDone];
+//    return result;
+//}
+
+- (void)saveToURL:(NSURL *)absoluteURL ofType:(NSString *)aType forSaveOperation:(NSSaveOperationType)saveOperation completionHandler:(void (^)(NSError *errorOrNil))completionHandler
 {
-    BOOL result = [super saveToURL:absoluteURL ofType:aType forSaveOperation:saveOperation error:outError];
-    if (result)
-        [self updateChangeCount: NSChangeDone];
-    return result;
+    [super saveToURL:absoluteURL ofType:aType forSaveOperation:saveOperation completionHandler:^(NSError *errorOrNil) {
+        if (errorOrNil == nil) {
+            [self updateChangeCount: NSChangeDone];
+            if(self->mustClose) {
+                [[CalcBackend sharedBackend] stop];
+                [self close];
+            }
+        }
+        self->mustClose = false;
+        if(completionHandler)
+            completionHandler(errorOrNil);
+    }];
 }
 
 + (NSURL *)defaultFileURL
@@ -198,10 +273,11 @@
                  shouldCloseSelector:(SEL)shouldCloseSelector
                          contextInfo:(void *)contextInfo
 {
+    void (*callback)(id, SEL, NSDocument *, BOOL, void *) = (void (*)(id, SEL, NSDocument *, BOOL, void *))objc_msgSend;
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     if ([defaults boolForKey: @"AutoSaveOnExit"])
     {
-        BOOL shouldClose = YES;
+        //BOOL shouldClose = YES;
         NSError *err = nil;
         NSURL *saveURL = [self fileURL];
         if (nil == saveURL)
@@ -211,24 +287,69 @@
         if (nil == saveURL)
         {
             err = [NSError errorWithDomain:NSCocoaErrorDomain code:NSFileWriteNoPermissionError userInfo:nil];
-            shouldClose = NO;
+            //shouldClose = NO;
+            [self presentError: err];
+            if (delegate)
+                //objc_msgSend(delegate, shouldCloseSelector, self, NO, contextInfo);
+                (callback)(delegate, shouldCloseSelector, self, NO, contextInfo);
         }
         else
         {
-            shouldClose = [self saveToURL:saveURL ofType:@"Emu48 State" forSaveOperation:NSSaveOperation error:&err];
+            //NSString * currentModel = [[CalcBackend sharedBackend] currentModel];
+            //[currentModel isEqualToString:@"6"]
+            NSString * fileType = @"com.dw.emu48-state-e48"; // HP48SX/GX
+            if (cCurrentRomType=='6' || cCurrentRomType=='A') // HP38G
+                fileType = @"com.dw.emu48-state-e38";
+            if (cCurrentRomType=='E')                // HP39/40G
+                fileType = @"com.dw.emu48-state-e39";
+            if (cCurrentRomType=='X')                // HP49G
+                fileType = @"com.dw.emu48-state-e49";
+
+            //shouldClose = [self saveToURL:saveURL ofType:@"Emu48 State" forSaveOperation:NSSaveOperation error:&err];
+            [self saveToURL:saveURL ofType:fileType forSaveOperation:NSSaveOperation completionHandler:^(NSError *errorOrNil) {
+                if (errorOrNil == nil) {
+                    if (delegate)
+                        //objc_msgSend(delegate, shouldCloseSelector, self, YES, contextInfo);
+                        (callback)(delegate, shouldCloseSelector, self, YES, contextInfo);
+                } else {
+                    [self presentError: err];
+                    if (delegate)
+                        //objc_msgSend(delegate, shouldCloseSelector, self, NO, contextInfo);
+                        (callback)(delegate, shouldCloseSelector, self, NO, contextInfo);
+                }
+            }];
+            return;
         }
 
-        if (!shouldClose)
-            [self presentError: err];
-
-        if (delegate)
-            objc_msgSend(delegate, shouldCloseSelector, self, shouldClose, contextInfo);
+//        if (!shouldClose)
+//            [self presentError: err];
+//
+//        if (delegate)
+//            objc_msgSend(delegate, shouldCloseSelector, self, shouldClose, contextInfo);
     }
     else
     {
+        self->mustClose = true;
         [super canCloseDocumentWithDelegate:delegate shouldCloseSelector:shouldCloseSelector contextInfo:contextInfo];
+//        if (delegate)
+//            //objc_msgSend(delegate, shouldCloseSelector, self, NO, contextInfo);
+//            (callback)(delegate, shouldCloseSelector, self, YES, contextInfo);
+//        [super canCloseDocumentWithDelegate:self shouldCloseSelector:@selector(document:shouldClose:contextInfo:) contextInfo:contextInfo];
     }
 }
+
+//- (void)document:(NSDocument *)document shouldClose:(BOOL)shouldClose contextInfo:(void *)contextInfo
+//{
+//    if(shouldClose) {
+//        //[self updateChangeCount: NSChangeDone];
+//        //[self updateChangeCount: NSChangeCleared];
+//        //SwitchToState(SM_INVALID);
+//        CalcBackend *backend = [CalcBackend sharedBackend];
+//        [backend stop];
+//        [self close];
+//    }
+//}
+
 @end
 
 
@@ -245,7 +366,8 @@
     }
     if (path)
     {
-        id doc = [self openDocumentWithContentsOfURL:[NSURL fileURLWithPath: path] display:YES error:&err];
+        CalcDocument * doc = [self openDocumentWithContentsOfURL:[NSURL fileURLWithPath: path] display:YES error:&err];
+        //id doc = [self makeUntitledDocumentOfType:@"com.dw.emu48-state" error:&err];
         if (nil == doc && err)
         {
             NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
@@ -256,6 +378,16 @@
 
             NSError *untitledDocError = [NSError errorWithDomain:[err domain] code:[err code] userInfo:userInfo];
             [self presentError: untitledDocError];
+        }
+        if(doc) {
+            NSString * fileType = @"com.dw.emu48-state-e48"; // HP48SX/GX
+            if (cCurrentRomType=='6' || cCurrentRomType=='A') // HP38G
+                fileType = @"com.dw.emu48-state-e38";
+            if (cCurrentRomType=='E')                // HP39/40G
+                fileType = @"com.dw.emu48-state-e39";
+            if (cCurrentRomType=='X')                // HP49G
+                fileType = @"com.dw.emu48-state-e49";
+            doc.fileType = fileType;
         }
     }
 }
@@ -270,7 +402,7 @@
     if (doc)
     {
         NSString *type = [doc fileType];
-        if ([type isEqualToString: @"KML File"])
+        if ([type isEqualToString: @"com.dw.emu48-kml"])
         {
             [doc setFileURL: nil];
             [doc setFileModificationDate: nil];
@@ -280,10 +412,90 @@
     return doc;
 }
 
+
+//// Overriding newDocument: to implement new document from stationery
+//- (IBAction)newDocument:(id)sender
+//{
+//    NSString *path = nil;
+//    if ([sender respondsToSelector: @selector(representedObject)])
+//    {
+//        path = [sender representedObject];
+//    }
+//    if (path)
+//    {
+//        //CalcDocument * doc = [self openDocumentWithContentsOfURL:[NSURL fileURLWithPath: path] display:YES error:&err];
+//        //id doc = [self makeUntitledDocumentOfType:@"com.dw.emu48-state" error:&err];
+//        [self openDocumentWithContentsOfURL:[NSURL fileURLWithPath: path] display:YES completionHandler:^(NSDocument *document, BOOL documentWasAlreadyOpen, NSError *err) {
+//            if (nil == document && err)
+//            {
+//                NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
+//                [userInfo setObject:[[NSString stringWithFormat: NSLocalizedString(@"The document “%@” could not be opened.",@""), [path lastPathComponent]] stringByAppendingFormat: @" %@", [err localizedFailureReason]] forKey:NSLocalizedDescriptionKey];
+//
+//                [userInfo setObject:[err localizedFailureReason]
+//                             forKey:NSLocalizedFailureReasonErrorKey];
+//
+//                NSError *untitledDocError = [NSError errorWithDomain:[err domain] code:[err code] userInfo:userInfo];
+//                [self presentError: untitledDocError];
+//            }
+//            if(document) {
+//                NSString * fileType = @"com.dw.emu48-state-e48"; // HP48SX/GX
+//                if (cCurrentRomType=='6' || cCurrentRomType=='A') // HP38G
+//                    fileType = @"com.dw.emu48-state-e38";
+//                if (cCurrentRomType=='E')                // HP39/40G
+//                    fileType = @"com.dw.emu48-state-e39";
+//                if (cCurrentRomType=='X')                // HP49G
+//                    fileType = @"com.dw.emu48-state-e49";
+//                document.fileType = fileType;
+//            }
+//        }];
+//    }
+//}
+//
+//
+////- (void)openDocumentWithContentsOfURL:(NSURL *)absoluteURL display:(BOOL)displayDocument completionHandler:(void (^)(NSDocument * _Nullable, BOOL, NSError * _Nullable))completionHandler
+//- (void)openDocumentWithContentsOfURL:(NSURL *)absoluteURL display:(BOOL)displayDocument
+//                    completionHandler:(void (^)(NSDocument *document, BOOL documentWasAlreadyOpen, NSError *error))completionHandler;
+////- (id)openDocumentWithContentsOfURL:(NSURL *)absoluteURL display:(BOOL)displayDocument error:(NSError **)aOutError
+//{
+//    //SwitchToState(SM_INVALID);
+//
+//    if([[self documents] count] > 0) {
+//        // Only one document is allowed
+//        CalcDocument * openedDocument = [[self documents] objectAtIndex:0];
+//        if(openedDocument) {
+//            [openedDocument canCloseDocumentWithDelegate:self shouldCloseSelector:nil contextInfo:nil];
+//            //SEL newCalcAction = @selector(newDocument:);
+//
+//        }
+//    } else
+//        [self internalOpenDocumentWithContentsOfURL:absoluteURL display:displayDocument completionHandler:completionHandler];
+//}
+//
+////- (id)internalOpenDocumentWithContentsOfURL:(NSURL *)absoluteURL display:(BOOL)displayDocument error:(NSError **)aOutError
+//- (void)internalOpenDocumentWithContentsOfURL:(NSURL *)absoluteURL display:(BOOL)displayDocument
+//                            completionHandler:(void (^)(NSDocument *document, BOOL documentWasAlreadyOpen, NSError *error))completionHandler
+//{
+////    NSError *outError = nil;
+////    id doc = [super openDocumentWithContentsOfURL:absoluteURL display:displayDocument error:&outError];
+////    if (aOutError)
+////        *aOutError = outError;
+//    [super openDocumentWithContentsOfURL:absoluteURL display:displayDocument completionHandler:^(NSDocument *doc, BOOL documentWasAlreadyOpen, NSError *error) {
+//        if (doc)
+//        {
+//            NSString *type = [doc fileType];
+//            if ([type isEqualToString: @"com.dw.emu48-kml"])
+//            {
+//                [doc setFileURL: nil];
+//                [doc setFileModificationDate: nil];
+//            }
+//        }
+//    }];
+//}
+
 - (void)noteNewRecentDocument:(NSDocument *)aDocument
 {
     NSString *type = [aDocument fileType];
-    if ([type isEqualToString: @"Emu48 State"])
+    if ([type hasPrefix: @"com.dw.emu48-state"])
     {
         [super noteNewRecentDocument: aDocument];
     }

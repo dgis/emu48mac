@@ -17,6 +17,7 @@
 - (IBAction)openObject:(id)sender;
 - (IBAction)restoreCalc:(id)sender;
 - (IBAction)saveObject:(id)sender;
+- (IBAction)resetCalc:(id)sender;
 @end
 
 

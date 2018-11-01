@@ -33,13 +33,14 @@
     [oPanel setResolvesAliases: YES];
     [oPanel setAllowsMultipleSelection: NO];
     [oPanel setAllowedFileTypes: fileTypes];
-    result = [oPanel runModal];
+    result = (int)[oPanel runModal];
     
-    if (result == NSOKButton)
+    if (result == NSModalResponseOK)
     {
         NSArray *filesToOpen = [oPanel URLs];
-        NSString *aFile = [filesToOpen objectAtIndex:0];
-        [[NSUserDefaults standardUserDefaults] setObject:aFile forKey:@"Port2Filename"];
+        NSString *aFile = [[filesToOpen objectAtIndex:0] path];
+        //[[NSUserDefaults standardUserDefaults] setObject:aFile forKey:@"Port2Filename"];
+        [prefModel setPort2Filename:aFile];
     }
 }
 
@@ -58,16 +59,18 @@
     [panel setPrompt: NSLocalizedString(@"Make",@"")];
     [panel setMessage: NSLocalizedString(@"Note: Actual file size will be twice the chosen size.",@"")];
     [panel setAccessoryView: cardSizeView];
-    int result = [panel runModal];
-    if (result == NSOKButton)
+    int result = (int)[panel runModal];
+    if (result == NSModalResponseOK)
     {
-        int blockIndex = [cardSizePopup indexOfSelectedItem];
+        int blockIndex = (int)[cardSizePopup indexOfSelectedItem];
         if (blockIndex < 0 || blockIndex >= sizeof(BLOCK_SIZES))
             blockIndex = 0;
         int numBlocks = BLOCK_SIZES[blockIndex];
         if (NewPort2([[panel URL] absoluteString], numBlocks))
         {
-            [[NSUserDefaults standardUserDefaults] setObject:[[panel URL] absoluteString] forKey:@"Port2Filename"];
+            NSString *aFile = [[panel URL] absoluteString];
+            //[[NSUserDefaults standardUserDefaults] setObject:aFile forKey:@"Port2Filename"];
+            [prefModel setPort2Filename:aFile];
         }
     }
 }
@@ -191,8 +194,22 @@
 - (void)windowDidBecomeKey:(NSNotification *)notification
 {
     // Forcibly refresh bindings
+    [prefModel willChangeValueForKey:@"LoadObjectWarning"];
+    [prefModel didChangeValueForKey:@"LoadObjectWarning"];
+    [prefModel willChangeValueForKey:@"AlwaysDisplayLog"];
+    [prefModel didChangeValueForKey:@"AlwaysDisplayLog"];
+
     [prefModel setPort1Enabled: YES];
     [prefModel setPort2Enabled: YES];
+    
+    [prefModel willChangeValueForKey:@"Port1Enabled"];
+    [prefModel didChangeValueForKey:@"Port1Enabled"];
+    [prefModel willChangeValueForKey:@"Port1Plugged"];
+    [prefModel didChangeValueForKey:@"Port1Plugged"];
+    [prefModel willChangeValueForKey:@"Port1Writeable"];
+    [prefModel didChangeValueForKey:@"Port1Writeable"];
+    [prefModel willChangeValueForKey:@"Port2Enabled"];
+    [prefModel didChangeValueForKey:@"Port2Enabled"];
 }
 
 - (void)switchTab:(id)aSender

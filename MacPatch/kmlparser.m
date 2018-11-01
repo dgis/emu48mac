@@ -9,7 +9,7 @@
  *
  */
 #import "kmlparser.h"
-#ifndef TARGET_OS_IPHONE
+#if !TARGET_OS_IPHONE
 #import "KmlLogController.h"
 #import "CalcAppController.h"
 #endif
@@ -18,8 +18,8 @@
 #import "EMU48.H"
 
 
-#ifndef TARGET_OS_IPHONE
-#define LogController   [[NSApp delegate] kmlLogController]
+#if !TARGET_OS_IPHONE
+#define LogController   [((CalcAppController *)[NSApp delegate]) kmlLogController]
 #endif
 
 typedef struct KmlTokenC
@@ -237,7 +237,7 @@ NSString *GetStringParam(KmlBlock* pBlock, TokenId eBlock, TokenId eCommand, UIN
 
 - (IBAction)DisplayKMLLog:(id)sender
 {
-#ifndef TARGET_OS_IPHONE
+#if !TARGET_OS_IPHONE
     KmlLogController *logController = LogController;
     BOOL showLog = [[NSUserDefaults standardUserDefaults]
                     boolForKey: @"AlwaysDisplayLog"];
@@ -355,7 +355,7 @@ NSString *GetStringParam(KmlBlock* pBlock, TokenId eBlock, TokenId eCommand, UIN
     return result;
 }
 
-// Parses the whole file
+// Parses the whole file (InitKML)
 - (KmlParseResult *)ParseKML:(NSString *)filename error:(NSError **)outError
 {
     NSString  *lpBuf;
@@ -534,14 +534,7 @@ quit:
 
 - (TokenId)Lex:(UINT)nMode
 {
-    if ((nMode != LEX_PARAM) && [scanner scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\r\n"] intoString:nil])
-    {
-        ++nLexLine;
-    }
-    if ([scanner scanString:@"#" intoString:nil])
-    {
-        [scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\r\n"] intoString:nil];
-    }
+    [self SkipWhite:nMode];
 
     if ([scanner isAtEnd])
         return TOK_NONE;
@@ -844,7 +837,7 @@ quit:
 
 	pLine = (KmlLine *)calloc(1, sizeof(KmlLine));
 	pLine->eCommand = eCommand;
-	nParams = pLexToken[i].nParams;
+	//nParams = pLexToken[i].nParams;
 
 	for (j = 0, nParams = pLexToken[i].nParams; TRUE; nParams >>= 3)
     {
@@ -909,9 +902,9 @@ quit:
 - (TokenId)ParseToken:(UINT)nMode
 {
 	UINT j;
-    BOOL early_break;
+    //BOOL early_break;
     NSString *token = nil;
-    early_break = NO;
+    //early_break = NO;
     if ((nMode != LEX_PARAM) && [scanner scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\r\n"] intoString:nil])
     {
         ++nLexLine;
@@ -939,22 +932,21 @@ quit:
 
 - (void)SkipWhite:(UINT)nMode
 {
-	UINT i;
     while (![scanner isAtEnd])
     {
-        i = 0;
-        if ([scanner scanCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:nil])
+        if (nMode != LEX_PARAM && [scanner scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\r\n"] intoString:nil])
         {
-            if ((nMode != LEX_PARAM) && [scanner scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\r\n"] intoString:nil])
-            {
-                ++nLexLine;
-            }
+            ++nLexLine;
             continue;
         }
         if ([scanner scanString:@"#" intoString:nil])
         {
-            [scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\r\n"] intoString:nil];
-            if (nMode != LEX_PARAM) continue;
+            if([scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\r\n"] intoString:nil] && nMode != LEX_PARAM)
+            {
+                [scanner scanCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\r\n"] intoString:nil];
+                ++nLexLine;
+                continue;
+            }
         }
         break;
     }
@@ -1129,14 +1121,12 @@ quit:
 // Appends a string and a newline
 void AddToLog(NSString *szString)
 {
-  // TODO: check this mod
-#warning TODO
-#ifndef TARGET_OS_IPHONE
-//#if !TARGET_OS_IPHONE
+#if !TARGET_OS_IPHONE
     if(nil==szString)
         return;
 
-    [NSController appendLog: szString];
+    KmlLogController *logController = LogController;
+    [logController appendLog: szString];
 #endif
 }
 

@@ -28,6 +28,7 @@ extern BOOL IsDataPacked(VOID *pMem, DWORD dwSize);
 - (id)initWithKml:(NSString *)kmlPath error:(NSError **)outError;
 - (id)initWithFile:(NSString *)aStateFile error:(NSError **)outError;
 - (BOOL)setKmlFile:(NSString *)kmlPath error:(NSError **)outError;
+- (BOOL)setKmlFileWithStop:(NSString *)aFilename error:(NSError **)outError;
 - (BOOL)saveAs:(NSString *)aStateFile error:(NSError **)outError;
 - (KmlParseResult *)kml;
 @end

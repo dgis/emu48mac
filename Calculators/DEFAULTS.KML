@@ -3,7 +3,7 @@ Global
 	Author "Sebastien Carlier"
 	Model   "S"
 	Rom    "ROM.48S"
-	Patch  "BEEP.EXT"
+	Patch  "BEEP.48"
 	Debug  0
 	Bitmap "DEFAULTS.BMP"
 End

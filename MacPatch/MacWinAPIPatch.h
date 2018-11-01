@@ -167,7 +167,7 @@ extern void SetTimer(void *, TimerType, int msec, void *);
 extern int MessageBox(HANDLE, LPCTSTR szMessage, LPCTSTR szTitle, int flags);
 extern BOOL QueryPerformanceFrequency(PLARGE_INTEGER l);
 extern BOOL QueryPerformanceCounter(PLARGE_INTEGER l);
-extern DWORD timeGetTime();
+extern DWORD timeGetTime(void);
 extern void EnterCriticalSection(CRITICAL_SECTION *);
 extern void LeaveCriticalSection(CRITICAL_SECTION *);
 extern HANDLE CreateEvent(WORD, BOOL, BOOL, WORD);

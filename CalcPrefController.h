@@ -73,4 +73,5 @@ enum {
                 relativeToPath:(NSString *)base;
 - (NSMutableArray *)calculators;
 - (void)setCalculators:(NSArray *)aCalculators;
+- (void)refreshCalculators:(id)aArg;
 @end

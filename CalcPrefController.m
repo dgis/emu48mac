@@ -11,6 +11,8 @@
 #import "IO.H"
 #import "files.h"
 #import "kmlparser.h"
+#import "CalcBackend.h"
+#import "CalcView.h"
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= 30000
 #import <MobileCoreServices/MobileCoreServices.h>
 #endif
@@ -18,7 +20,7 @@
 @interface CalcPrefController(Private)
 - (void)refreshPort1WithPluggedStatus:(BOOL)isPlugged writeable:(BOOL)isWriteable;
 - (void)refreshPort2WithFilename:(NSString *)aFilename;
-- (void)refreshCalculators:(id)aArg;
+//- (void)refreshCalculators:(id)aArg;
 @end
 
 
@@ -101,7 +103,7 @@
 - (void)setDefaultCalculator:(int)aIndex
 {
     NSArray *allCalcs = [self calculators];
-    int count = [allCalcs count]; 
+    int count = (int)[allCalcs count];
     NSDictionary *calc;
     if (aIndex < count)
     {
@@ -119,14 +121,56 @@
 #define USERDEFAULTS_ACCESSOR_BOOL(n)  -(BOOL)n{return [[NSUserDefaults standardUserDefaults] boolForKey:@#n];} \
     -(void)set##n:(BOOL)value{[[NSUserDefaults standardUserDefaults] setBool:value forKey:@#n];}
 
-#define USERDEFAULTS_ACCESSOR_INT(n)   -(int)n{return [[NSUserDefaults standardUserDefaults] integerForKey:@#n];} \
+#define USERDEFAULTS_ACCESSOR_INT(n)   -(int)n{return (int)[[NSUserDefaults standardUserDefaults] integerForKey:@#n];} \
     -(void)set##n:(int)value{[[NSUserDefaults standardUserDefaults] setInteger:value forKey:@#n];}
 
-USERDEFAULTS_ACCESSOR_BOOL(RealSpeed)
-USERDEFAULTS_ACCESSOR_BOOL(Grayscale)
-USERDEFAULTS_ACCESSOR_BOOL(AlwaysOnTop)
-USERDEFAULTS_ACCESSOR_BOOL(AutoSaveOnExit)
 USERDEFAULTS_ACCESSOR_BOOL(ReloadFiles)
+
+-(BOOL)RealSpeed
+{
+    return [[NSUserDefaults standardUserDefaults] boolForKey:@"RealSpeed"];
+}
+-(void)setRealSpeed:(BOOL)value
+{
+    [[NSUserDefaults standardUserDefaults] setBool:value forKey:@"RealSpeed"];
+    SetSpeed(value);
+}
+
+-(BOOL)Grayscale
+{
+    return [[NSUserDefaults standardUserDefaults] boolForKey:@"Grayscale"];
+}
+-(void)setGrayscale:(BOOL)value
+{
+    [[NSUserDefaults standardUserDefaults] setBool:value forKey:@"Grayscale"];
+    CalcView * calcView = [[CalcBackend sharedBackend] calcView];
+    UINT nOldState = SwitchToState(SM_INVALID);
+    [calcView setLcdGrayscaleMode: value];
+#if TARGET_OS_IPHONE
+    [calcView setNeedsDisplay];
+#else
+    [calcView setNeedsDisplay: YES];
+#endif
+    SwitchToState(nOldState);
+}
+
+-(BOOL)AlwaysOnTop
+{
+    return [[NSUserDefaults standardUserDefaults] boolForKey:@"AlwaysOnTop"];
+}
+-(void)setAlwaysOnTop:(BOOL)value
+{
+    [[NSUserDefaults standardUserDefaults] setBool:value forKey:@"AlwaysOnTop"];
+    CalcBackend * backend = [CalcBackend sharedBackend];
+    if(backend && [backend calcView]) {
+        if(value)
+            [[[backend calcView] window] setLevel:NSFloatingWindowLevel];
+        else
+            [[[backend calcView] window] setLevel:NSNormalWindowLevel];
+    }
+}
+
+USERDEFAULTS_ACCESSOR_BOOL(AutoSaveOnExit)
 USERDEFAULTS_ACCESSOR_BOOL(LoadObjectWarning)
 USERDEFAULTS_ACCESSOR_BOOL(AlwaysDisplayLog)
 USERDEFAULTS_ACCESSOR_BOOL(RomWriteable)
@@ -144,6 +188,11 @@ USERDEFAULTS_ACCESSOR_INT(WaveBeep)
     }
     return NO;
 }
+- (void)setPort1Plugged:(BOOL)value
+{
+    [self refreshPort1WithPluggedStatus:value writeable:[self Port1Writeable]];
+}
+
 - (BOOL)Port1Writeable
 {
     if (cCurrentRomType=='S' || cCurrentRomType=='G' || cCurrentRomType==0)
@@ -152,64 +201,33 @@ USERDEFAULTS_ACCESSOR_INT(WaveBeep)
     }
     return NO;
 }
-- (BOOL)Port2IsShared
+- (void)setPort1Writeable:(BOOL)value
 {
-    return [[NSUserDefaults standardUserDefaults] boolForKey: @"Port2IsShared"];
-}
-- (NSString *)Port2Filename
-{
-    return [[NSUserDefaults standardUserDefaults] stringForKey: @"Port2Filename"];
+    [self refreshPort1WithPluggedStatus:[self Port1Plugged] writeable:value];
 }
 
 - (BOOL)Port1Enabled
 {
     if (cCurrentRomType=='S' || cCurrentRomType=='G' || cCurrentRomType==0)
     {
-        if (nState != SM_INVALID)		// Invalid State
+        if (nState != SM_INVALID)        // Invalid State
             return YES;
     }
     return NO;
 }
-- (BOOL)Port2Enabled
-{
-    if (cCurrentRomType=='S' || cCurrentRomType=='G' || cCurrentRomType==0)
-    {
-        return YES;
-    }
-    return NO;
-}
-- (void)setPort1Plugged:(BOOL)value
-{
-    [self refreshPort1WithPluggedStatus:value writeable:[self Port1Writeable]];
-}
-- (void)setPort1Writeable:(BOOL)value
-{
-    [self refreshPort1WithPluggedStatus:[self Port1Plugged] writeable:value];
-}
-- (void)setPort2IsShared:(BOOL)value
-{
-    [[NSUserDefaults standardUserDefaults] setBool:value forKey:@"Port2IsShared"];
-    [self refreshPort2WithFilename: [self Port2Filename]];
-}
-- (void)setPort2Filename:(NSString *)value
-{
-    [[NSUserDefaults standardUserDefaults] setObject:value forKey:@"Port2Filename"];
-    [self refreshPort2WithFilename: value];
-}
 - (void)setPort1Enabled:(BOOL)value
 {
 }
-- (void)setPort2Enabled:(BOOL)value
-{
-}
-- (void)refreshPort1WithPlugged:(BOOL)isPlugged writeable:(BOOL)isWriteable
+
+//- (void)refreshPort1WithPlugged:(BOOL)isPlugged writeable:(BOOL)isWriteable
+- (void)refreshPort1WithPluggedStatus:(BOOL)isPlugged writeable:(BOOL)isWriteable
 {
     if (Chipset.Port1Size && (cCurrentRomType!='X' || cCurrentRomType!='2' || cCurrentRomType!='Q'))   // CdB for HP: add apples
     {
         UINT nOldState = SwitchToState(SM_SLEEP);
         // save old card status
         BYTE bCardsStatus = Chipset.cards_status;
-
+        
         // port1 disabled?
         Chipset.cards_status &= ~(PORT1_PRESENT | PORT1_WRITE);
         if (isPlugged)
@@ -218,24 +236,75 @@ USERDEFAULTS_ACCESSOR_INT(WaveBeep)
             if (isWriteable)
                 Chipset.cards_status |= PORT1_WRITE;
         }
-
+        
         // changed card status in slot1?
         if (   ((bCardsStatus ^ Chipset.cards_status) & (PORT1_PRESENT | PORT1_WRITE)) != 0
             && (Chipset.IORam[CARDCTL] & ECDT) != 0 && (Chipset.IORam[TIMER2_CTRL] & RUN) != 0
             )
         {
-            Chipset.HST |= MP;			// set Module Pulled
-            IOBit(SRQ2,NINT,FALSE);		// set NINT to low
-            Chipset.SoftInt = TRUE;		// set interrupt
+            Chipset.HST |= MP;            // set Module Pulled
+            IOBit(SRQ2,NINT,FALSE);        // set NINT to low
+            Chipset.SoftInt = TRUE;        // set interrupt
             bInterrupt = TRUE;
         }
         SwitchToState(nOldState);
     }
 }
+
+
+- (BOOL)Port2IsShared
+{
+    return [[NSUserDefaults standardUserDefaults] boolForKey: @"Port2IsShared"];
+}
+- (void)setPort2IsShared:(BOOL)value
+{
+    [[NSUserDefaults standardUserDefaults] setBool:value forKey:@"Port2IsShared"];
+    [self refreshPort2WithFilename: [self Port2Filename]];
+}
+
+- (BOOL)Port2Writeable
+{
+//    if (cCurrentRomType=='S' || cCurrentRomType=='G' || cCurrentRomType==0)
+//    {
+//        return ((Chipset.cards_status & PORT2_WRITE) != 0);
+//    }
+//    return NO;
+    return [[NSUserDefaults standardUserDefaults] boolForKey: @"Port2Writeable"];
+}
+- (void)setPort2Writeable:(BOOL)value
+{
+    [[NSUserDefaults standardUserDefaults] setBool:value forKey:@"Port2Writeable"];
+    [self refreshPort2WithFilename:[self Port2Filename]];
+}
+
+- (NSString *)Port2Filename
+{
+    NSURL * url = [[NSUserDefaults standardUserDefaults] URLForKey:@"Port2Filename"];
+    return [url path];
+}
+- (void)setPort2Filename:(NSString *)value
+{
+    NSURL * url = [NSURL URLWithString:value];
+    [[NSUserDefaults standardUserDefaults] setURL:url forKey:@"Port2Filename"];
+    [self refreshPort2WithFilename: value];
+}
+
+- (BOOL)Port2Enabled
+{
+    if (cCurrentRomType=='S' || cCurrentRomType=='G' || cCurrentRomType==0)
+    {
+        return YES;
+    }
+    return NO;
+}
+- (void)setPort2Enabled:(BOOL)value
+{
+}
+
 - (void)refreshPort2WithFilename:(NSString *)aFilename
 {
     UINT nOldState = SwitchToState(SM_INVALID);
-
+    
     UnmapPort2();				// unmap port2
 
     if (cCurrentRomType)		// ROM defined
@@ -280,7 +349,8 @@ USERDEFAULTS_ACCESSOR_INT(WaveBeep)
             continue;
         NSString *kmlPath = [calcPath stringByAppendingPathComponent: kmlFile];
         KmlParseResult *kml = [parser LoadKMLGlobal: kmlPath];
-        if (nil == kml) continue;
+        if (nil == kml)
+            continue;
         NSString *title = [kml stringForBlockId:TOK_GLOBAL commandId:TOK_TITLE atIndex:0];
         if (nil == title)
             title = NSLocalizedString(@"Untitled", @"");
@@ -307,7 +377,15 @@ USERDEFAULTS_ACCESSOR_INT(WaveBeep)
     }
     [parser release];
     [kmlExt release];
-    return result;
+    //return result;
+
+    NSArray *sortedResult;
+    sortedResult = [result sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
+        NSString *first = ((NSMutableDictionary *)a)[@"title"];
+        NSString *second = ((NSMutableDictionary *)b)[@"title"];
+        return [first compare:second];
+    }];
+    return sortedResult;
 }
 
 - (NSMutableArray *)calculators
@@ -387,7 +465,7 @@ USERDEFAULTS_ACCESSOR_INT(WaveBeep)
     if (path && [path isKindOfClass: [NSString class]])
     {
         int i;
-        int count = [allCalcs count];
+        int count = (int)[allCalcs count];
         NSDictionary *calc;
         for (i = 0; i < count; ++i)
         {

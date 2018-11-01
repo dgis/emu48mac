@@ -54,7 +54,7 @@ extern CHIPSET Chipset;
         img = [[NSImage alloc] initWithSize: NSMakeSize([rep pixelsWide], [rep pixelsHigh])];
         if (img)
         {
-            [img setDataRetained: YES];
+            //[img setDataRetained: YES];
             [img addRepresentation: rep];
             [rep release];
         }
@@ -179,6 +179,8 @@ extern CHIPSET Chipset;
 
 - (void)drawRect:(NSRect)rect
 {
+    [super drawRect:rect]; //++
+
     NSRect dstRect = rect;
     rect.origin.x /= lcdScale;
     rect.origin.y /= lcdScale;
@@ -186,7 +188,14 @@ extern CHIPSET Chipset;
     rect.size.height /= lcdScale;
     // Real calculator doesn't do antialiasing so we don't either
     [[NSGraphicsContext currentContext] setImageInterpolation: NSImageInterpolationNone];
-    [img drawInRect:dstRect fromRect:rect operation:NSCompositeCopy fraction:1.0];
+//++    [img drawInRect:dstRect fromRect:rect operation:NSCompositeCopy fraction:1.0];
+//++
+    NSBitmapImageRep * imgRep = (NSBitmapImageRep*)[[img representations] objectAtIndex: 0];
+    NSDictionary * dict = [NSDictionary dictionary];
+    NSData * imageData = [imgRep representationUsingType: NSBitmapImageFileTypePNG properties: dict];
+    NSImage * img2 = [[NSImage alloc] initWithData:(NSData *)imageData];
+    [img2 drawInRect:dstRect fromRect:rect operation:NSCompositingOperationCopy fraction:1.0];
+    [img2 release];
 }
 
 - (void)UpdateMain
@@ -199,7 +208,7 @@ extern CHIPSET Chipset;
 
 #if defined DEBUG_DISPLAY
 	{
-		NSLog(@"%.5lx: Update Main Display" ,Chipset.pc);
+		NSLog(@"%.5x: Update Main Display", Chipset.pc);
 	}
 #endif
 
@@ -242,7 +251,7 @@ extern CHIPSET Chipset;
 	DWORD d;
 
 #if defined DEBUG_DISPLAY
-	NSLog(@"%.5lx: Update Menu Display",Chipset.pc);
+	NSLog(@"%.5x: Update Menu Display",Chipset.pc);
 #endif
 
 	if (!(Chipset.IORam[BITOFFSET]&DON)) return;
@@ -286,7 +295,7 @@ extern CHIPSET Chipset;
 	BYTE* d = Chipset.d0memory;
     
 #if defined DEBUG_DISPLAY
-    NSLog(@"%.5lx: Update header Display",Chipset.pc);
+    NSLog(@"%.5x: Update header Display",Chipset.pc);
 #endif
     
 	if (!(Chipset.IORam[BITOFFSET]&DON)) return;
@@ -335,7 +344,7 @@ extern CHIPSET Chipset;
 	}
 
 #if defined DEBUG_DISPLAY
-	NSLog(@"%.5lx: Write Main Display %x,%u",Chipset.pc,d,s);
+	NSLog(@"%.5x: Write Main Display...",Chipset.pc);
 #endif
 
 	if (!(Chipset.IORam[BITOFFSET]&DON)) return;	// display off
@@ -349,6 +358,10 @@ extern CHIPSET Chipset;
 	x0 = x = d % lWidth;					// bitmap coloumn
 	p = (DWORD*)(lcd + 4*y0*LCD_ROW + 4*x0*sizeof(*p));
     dp = (RGBQUAD *)p;
+
+#if defined DEBUG_DISPLAY
+    NSLog(@"%.5x: Write Main Display %x,%u",Chipset.pc,d,s);
+#endif
 
 	// outside main display area
     //	_ASSERT(y0 >= (INT)Chipset.d0size && y0 < (INT)(MAINSCREENHEIGHT+Chipset.d0size));
@@ -396,7 +409,7 @@ extern CHIPSET Chipset;
 	}
 
 #if defined DEBUG_DISPLAY
-	NSLog(@"%.5lx: Write Menu Display %x,%u",Chipset.pc,d,s);
+	NSLog(@"%.5x: Write Menu Display",Chipset.pc);
 #endif
 
 	if (!(Chipset.IORam[BITOFFSET]&DON)) return;	// display off
@@ -410,6 +423,10 @@ extern CHIPSET Chipset;
 	x0 = x = d % 34;                                        	// bitmap coloumn
 	p = (DWORD*)(lcd + 4*y0*LCD_ROW + 4*x0*sizeof(*p));
     dp = (RGBQUAD *)p;
+    
+#if defined DEBUG_DISPLAY
+    NSLog(@"%.5x: Write Menu Display %x,%u",Chipset.pc,d,s);
+#endif
 
 	// outside menu display area
     //	_ASSERT(y0 >= (INT)(Chipset.d0size+MAINSCREENHEIGHT) && y0 < (INT)(SCREENHEIGHT));
@@ -440,14 +457,19 @@ extern CHIPSET Chipset;
 	if (y==y0) y++;
 }
 
-- (NSDragOperation)draggingSourceOperationMaskForLocal:(BOOL)isLocal
+//- (NSDragOperation)draggingSourceOperationMaskForLocal:(BOOL)isLocal
+//{
+//    return NSDragOperationCopy;
+//}
+
+-(NSDragOperation)draggingSession:(NSDraggingSession *)session sourceOperationMaskForDraggingContext:(NSDraggingContext)context
 {
     return NSDragOperationCopy;
 }
 
 - (void)mouseDragged:(NSEvent *)theEvent
 {
-    NSPasteboard *pb = [NSPasteboard pasteboardWithName: NSDragPboard];
+    NSPasteboard *pb = [NSPasteboard pasteboardWithName: NSPasteboardNameDrag];
     NSError *err = nil;
     CalcStack *stack = [[CalcStack alloc] initWithError: &err];
     if (nil == stack)
@@ -461,6 +483,7 @@ extern CHIPSET Chipset;
     NSRect srcRect;
     NSPoint dragPoint = [self convertPoint:[theEvent locationInWindow] fromView:nil];
     dragRect.size = [img size];
+    dragRect.size.width = 131.;
     srcRect = dragRect;
     dragRect.size.width  *= lcdScale;
     dragRect.size.height *= lcdScale;
@@ -468,7 +491,7 @@ extern CHIPSET Chipset;
     dragPoint.y -= dragRect.size.height*0.5;
     NSImage *dragImage = [[[NSImage alloc] initWithSize: dragRect.size]  autorelease];
     [dragImage lockFocus];
-    [img drawInRect:dragRect fromRect:srcRect operation:NSCompositeSourceOver fraction:0.5];
+    [img drawInRect:dragRect fromRect:srcRect operation:NSCompositingOperationSourceOver fraction:0.5];
     [dragImage unlockFocus];
     [self dragImage:dragImage at:dragPoint offset:NSZeroSize event:theEvent pasteboard:pb source:self slideBack:YES];
 }

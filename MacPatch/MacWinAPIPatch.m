@@ -257,7 +257,7 @@ void SetTimer(void *, TimerType id, int msec, void *)
 int MessageBox(HANDLE h, LPCTSTR szMessage, LPCTSTR title, int flags)
 {
     int result = IDOK;
-#ifndef TARGET_OS_IPHONE
+#if !TARGET_OS_IPHONE
     NSAlert *alert = [[NSAlert alloc] init];
     [alert setMessageText: NSLocalizedString([NSString stringWithUTF8String: szMessage],@"")];
     if (0 != (flags & MB_OK))
@@ -277,11 +277,11 @@ int MessageBox(HANDLE h, LPCTSTR szMessage, LPCTSTR title, int flags)
     }
 
     if (0 != (flags & MB_ICONSTOP))
-        [alert setAlertStyle: NSCriticalAlertStyle];
+        [alert setAlertStyle: NSAlertStyleCritical];
     else if (0 != (flags & MB_ICONINFORMATION))
-        [alert setAlertStyle: NSInformationalAlertStyle];
+        [alert setAlertStyle: NSAlertStyleInformational];
 
-    result = [alert runModal];
+    result = (int)[alert runModal];
     [alert release];
 
     if (0 != (flags & MB_OK))
@@ -297,22 +297,21 @@ int MessageBox(HANDLE h, LPCTSTR szMessage, LPCTSTR title, int flags)
 
 BOOL QueryPerformanceFrequency(PLARGE_INTEGER l)
 {
-    static struct mach_timebase_info timebase;
+    static struct mach_timebase_info timebase = { 0, 0 };
     if (0 == timebase.denom)
         mach_timebase_info(&timebase);
-    l->LowPart  = 1e9 * timebase.denom / timebase.numer;
-    l->QuadPart = 1e9 * timebase.denom / timebase.numer;
-//	l->QuadPart=1000000;
+//    l->LowPart  = 1e9 * timebase.denom / timebase.numer;
+    l->QuadPart=1000000;
 	return TRUE;
 }
 
 BOOL QueryPerformanceCounter(PLARGE_INTEGER l)
 {
-    l->QuadPart = mach_absolute_time();
+    l->QuadPart = mach_absolute_time() / 1000;
     return TRUE;
 }
 
-DWORD timeGetTime()
+DWORD timeGetTime(void)
 {
     time_t t = time(nil);
     return (DWORD)(t * 1000);

@@ -47,7 +47,7 @@
                 }
                 break;
             case TOK_CLASS:
-                nCurrentClass = pLine->nParam[0];
+                nCurrentClass = (UINT)(pLine->nParam[0]);
                 PrintfToLog(@"Calculator Class : %u", nCurrentClass);
                 break;
             case TOK_DEBUG:
@@ -150,16 +150,16 @@
 		switch (pLine->eCommand)
 		{
 		case TOK_OFFSET:
-            annunciator.nOx = pLine->nParam[0];
-            annunciator.nOy = pLine->nParam[1];
+            annunciator.nOx = (unsigned int)(pLine->nParam[0]);
+            annunciator.nOy = (unsigned int)(pLine->nParam[1]);
 			break;
 		case TOK_DOWN:
-			annunciator.nDx = pLine->nParam[0];
-			annunciator.nDy = pLine->nParam[1];
+			annunciator.nDx = (unsigned int)(pLine->nParam[0]);
+			annunciator.nDy = (unsigned int)(pLine->nParam[1]);
 			break;
 		case TOK_SIZE:
-			annunciator.nCx = pLine->nParam[0];
-			annunciator.nCy = pLine->nParam[1];
+			annunciator.nCx = (unsigned int)(pLine->nParam[0]);
+			annunciator.nCy = (unsigned int)(pLine->nParam[1]);
 			break;
 		case TOK_END:
 			return pLine;
@@ -240,23 +240,23 @@
 		switch (pLine->eCommand)
 		{
 		case TOK_TYPE:
-			button.nType = pLine->nParam[0];
+			button.nType = (unsigned int)(pLine->nParam[0]);
 			break;
 		case TOK_OFFSET:
-			button.nOx = pLine->nParam[0];
-			button.nOy = pLine->nParam[1];
+			button.nOx = (unsigned int)(pLine->nParam[0]);
+			button.nOy = (unsigned int)(pLine->nParam[1]);
 			break;
 		case TOK_DOWN:
-			button.nDx = pLine->nParam[0];
-			button.nDy = pLine->nParam[1];
+			button.nDx = (unsigned int)(pLine->nParam[0]);
+			button.nDy = (unsigned int)(pLine->nParam[1]);
 			break;
 		case TOK_SIZE:
-			button.nCx = pLine->nParam[0];
-			button.nCy = pLine->nParam[1];
+			button.nCx = (unsigned int)(pLine->nParam[0]);
+			button.nCy = (unsigned int)(pLine->nParam[1]);
 			break;
 		case TOK_OUTIN:
-			button.nOut = pLine->nParam[0];
-			button.nIn  = pLine->nParam[1];
+			button.nOut = (unsigned int)(pLine->nParam[0]);
+			button.nIn  = (unsigned int)(pLine->nParam[1]);
 			break;
 		case TOK_ONDOWN:
 			button.pOnDown = pLine;
@@ -304,8 +304,8 @@
 		case TOK_ZOOM:
             if ([delegate respondsToSelector:@selector(parsedLcdScale:)])
             {
-                unsigned nLcdDoubled = pLine->nParam[0];
-                if (nLcdDoubled != 1 && nLcdDoubled != 2 && nLcdDoubled != 4)
+                unsigned nLcdDoubled = (unsigned int)(pLine->nParam[0]);
+                if (nLcdDoubled != 1 && nLcdDoubled != 2 && nLcdDoubled != 3 && nLcdDoubled != 4)
                     nLcdDoubled = 1;
                 [delegate parsedLcdScale: nLcdDoubled];
             }
@@ -313,10 +313,10 @@
 		case TOK_COLOR:
             if ([delegate respondsToSelector:@selector(parsedLcdColorAtIndex:red:green:blue:)])
             {
-                [delegate parsedLcdColorAtIndex:pLine->nParam[0]
-                                            red:pLine->nParam[1]
-                                          green:pLine->nParam[2]
-                                           blue:pLine->nParam[3]];
+                [delegate parsedLcdColorAtIndex:(unsigned int)(pLine->nParam[0])
+                                            red:(unsigned int)(pLine->nParam[1])
+                                          green:(unsigned int)(pLine->nParam[2])
+                                           blue:(unsigned int)(pLine->nParam[3])];
             }
 			break;
 		case TOK_END:

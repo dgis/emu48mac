@@ -70,6 +70,9 @@
 #endif
 - (void)updateDbgCycleCounter;
 - (void)clearHistory;
+- (void)setCodeAddress:(DWORD)address;
+- (DWORD)getMemoryAddress;
+- (void)setMemoryAddress:(DWORD)address;
 @end
 
 

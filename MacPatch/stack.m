@@ -65,7 +65,7 @@ static INT RPL_SetZInt(LPCTSTR cp,LPBYTE pbyNum,INT nSize)
     
 	_ASSERT(nSize > 0);						// target buffer size
     
-	nStrLen = lstrlen(cp);					// source string length
+	nStrLen = (int)lstrlen(cp);					// source string length
     
 	if (   nStrLen == 0						// empty string
 		// precisition integer contain only these numbers
@@ -190,7 +190,7 @@ static INT RPL_GetBcd(BYTE CONST *pbyNum,INT nMantLen,INT nExpLen,CONST TCHAR cD
 	if (bExpflag)
 	{
 		if (i + 5 >= nSize) return 0;		// dest buffer overflow
-		i += wsprintf(&cp[i],_T("E%d"),lExp-1);
+        i += wsprintf(&cp[i],_T("E%l"),lExp-1);
 	}
 	return i;
 }
@@ -509,7 +509,7 @@ WORD WriteStack(UINT nStkLevel,LPBYTE lpBuf,DWORD dwSize)	// separated from Load
 - (BOOL)copyObjectRepresentation:(NSError **)outError	// separated stack reading part
 {
 	LPBYTE  pbyHeader;
-	DWORD	lBytesWritten;
+	//DWORD	lBytesWritten;
 	DWORD   dwAddr;
 	DWORD   dwLength;
     NSMutableData *data = nil;
@@ -525,8 +525,8 @@ WORD WriteStack(UINT nStkLevel,LPBYTE lpBuf,DWORD dwSize)	// separated from Load
     data = [NSMutableData data];
 
 	pbyHeader = ((Chipset.type=='X' || Chipset.type=='2' || Chipset.type=='Q'))
-			  ? BINARYHEADER49
-			  : BINARYHEADER48;
+			  ? (LPBYTE)BINARYHEADER49
+			  : (LPBYTE)BINARYHEADER48;
     [data appendBytes:pbyHeader length:8];
 
 	while (dwLength--)
@@ -664,7 +664,7 @@ error:
 	}
 #endif
 
-    dwFileSizeLow = [objectRepresentation length];
+    dwFileSizeLow = (unsigned int)[objectRepresentation length];
 	lpBuf = calloc(1, dwFileSizeLow*2);
     memcpy(lpBuf+dwFileSizeLow, [objectRepresentation bytes], dwFileSizeLow);
     wError = WriteStack(1,lpBuf,dwFileSizeLow);
@@ -792,7 +792,7 @@ cancel:
 
             // any other format
             {
-                DWORD dwSize = lstrlen(lpstrClipdata);
+                DWORD dwSize = (unsigned int)lstrlen(lpstrClipdata);
                 if ((lpbyData = HeapAlloc(hHeap,0,dwSize * 2)))
                 {
                     LPBYTE lpbySrc,lpbyDest;
@@ -859,9 +859,9 @@ cancel:
 #if TARGET_OS_IPHONE
             kUTTypeUTF8PlainText,
 #else
-            NSStringPboardType,
+            NSPasteboardTypeString,
             NSFilenamesPboardType,
-            NSURLPboardType,
+            NSPasteboardTypeURL,
             NSFileContentsPboardType,
 #endif
             nil];
@@ -897,7 +897,7 @@ cancel:
 #if TARGET_OS_IPHONE
          (NSString *)kUTTypeUTF8PlainText
 #else
-         NSStringPboardType
+         NSPasteboardTypeString
 #endif
         ];
     if ([types count] > 0)
@@ -912,7 +912,7 @@ cancel:
         if (objectRepresentation)
             [pb setData:objectRepresentation forType:Emu48ObjectPBoardType];
         if (stringRepresentation)
-            [pb setData:[stringRepresentation dataUsingEncoding: NSUTF8StringEncoding] forType:NSStringPboardType];
+            [pb setData:[stringRepresentation dataUsingEncoding: NSUTF8StringEncoding] forType:NSPasteboardTypeString];
 #endif
         result = YES;
     }
@@ -933,7 +933,7 @@ cancel:
     {
         files = [pb propertyListForType: NSFilenamesPboardType];
     }
-    else if ([type isEqualToString: NSURLPboardType])
+    else if ([type isEqualToString: NSPasteboardTypeURL])
     {
         NSURL *fileURL = [NSURL URLFromPasteboard: pb];
         if (fileURL)
@@ -950,7 +950,8 @@ cancel:
             }
             else if ([fileContents isSymbolicLink])
             {
-                files = [NSArray arrayWithObject: [fileContents symbolicLinkDestination]];
+                //files = [NSArray arrayWithObject: [fileContents symbolicLinkDestination]];
+                files = [NSArray arrayWithObject: [[fileContents symbolicLinkDestinationURL] path]];
             }
         }
     }
@@ -968,14 +969,14 @@ cancel:
 #if TARGET_OS_IPHONE
               (NSString *)kUTTypeUTF8PlainText
 #else
-              NSStringPboardType
+              NSPasteboardTypeString
 #endif
              ])
     {
 #if TARGET_OS_IPHONE
         str = pb.string;
 #else
-        str = [pb stringForType: NSStringPboardType];
+        str = [pb stringForType: NSPasteboardTypeString];
 #endif
     }
     else

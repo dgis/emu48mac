@@ -11,33 +11,123 @@
 			<array>
 				<string>e49</string>
 				<string>E49</string>
-				<string>e48</string>
-				<string>E48</string>
-				<string>e39</string>
-				<string>E39</string>
-				<string>e38</string>
-				<string>E38</string>
-				<string>w48</string>
-				<string>W48</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
 			<string>XStt</string>
 			<key>CFBundleTypeName</key>
-			<string>Emu48 State</string>
+			<string>Emu48 HP49G State</string>
 			<key>CFBundleTypeOSTypes</key>
 			<array>
-				<string>AStt</string>
-				<string>6Stt</string>
-				<string>EStt</string>
-				<string>SStt</string>
-				<string>GStt</string>
 				<string>XStt</string>
 			</array>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>com.dw.emu48-state</string>
+				<string>com.dw.emu48-state-e49</string>
+			</array>
+			<key>LSTypeIsPackage</key>
+			<false/>
+			<key>NSDocumentClass</key>
+			<string>CalcDocument</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>e48</string>
+				<string>E48</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>XStt</string>
+			<key>CFBundleTypeName</key>
+			<string>Emu48 HP48S[X]/G[X] State</string>
+			<key>CFBundleTypeOSTypes</key>
+			<array>
+				<string>SStt</string>
+				<string>GStt</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.dw.emu48-state-e48</string>
+			</array>
+			<key>LSTypeIsPackage</key>
+			<false/>
+			<key>NSDocumentClass</key>
+			<string>CalcDocument</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>e39</string>
+				<string>E39</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>XStt</string>
+			<key>CFBundleTypeName</key>
+			<string>Emu48 HP39/40G State</string>
+			<key>CFBundleTypeOSTypes</key>
+			<array>
+				<string>EStt</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.dw.emu48-state-e39</string>
+			</array>
+			<key>LSTypeIsPackage</key>
+			<false/>
+			<key>NSDocumentClass</key>
+			<string>CalcDocument</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>e38</string>
+				<string>E38</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>XStt</string>
+			<key>CFBundleTypeName</key>
+			<string>Emu48 HP38G State</string>
+			<key>CFBundleTypeOSTypes</key>
+			<array>
+				<string>AStt</string>
+				<string>6Stt</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.dw.emu48-state-e38</string>
+			</array>
+			<key>LSTypeIsPackage</key>
+			<false/>
+			<key>NSDocumentClass</key>
+			<string>CalcDocument</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>w48</string>
+				<string>W48</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>XStt</string>
+			<key>CFBundleTypeName</key>
+			<string>Win48 State</string>
+			<key>CFBundleTypeOSTypes</key>
+			<array>
+				<string>SStt</string>
+				<string>GStt</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.dw.emu48-state-w48</string>
 			</array>
 			<key>LSTypeIsPackage</key>
 			<false/>
@@ -68,10 +158,6 @@
 			<string>EROM</string>
 			<key>CFBundleTypeName</key>
 			<string>HP Rom Image</string>
-			<key>CFBundleTypeOSTypes</key>
-			<array>
-				<string>IROM</string>
-			</array>
 			<key>CFBundleTypeRole</key>
 			<string>None</string>
 			<key>LSItemContentTypes</key>
@@ -86,10 +172,6 @@
 			<string>ERAM</string>
 			<key>CFBundleTypeName</key>
 			<string>HP Port RAM Image</string>
-			<key>CFBundleTypeOSTypes</key>
-			<array>
-				<string>ERAM</string>
-			</array>
 			<key>CFBundleTypeRole</key>
 			<string>None</string>
 			<key>LSItemContentTypes</key>
@@ -111,10 +193,6 @@
 			<string>EOBJ</string>
 			<key>CFBundleTypeName</key>
 			<string>HP Stack Object</string>
-			<key>CFBundleTypeOSTypes</key>
-			<array>
-				<string>EOBJ</string>
-			</array>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>LSItemContentTypes</key>
@@ -130,7 +208,7 @@
 	<key>CFBundleIconFile</key>
 	<string>EM48</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.dw.emu48</string>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -138,13 +216,13 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.47</string>
+	<string>1.47.1</string>
 	<key>CFBundleSignature</key>
 	<string>EM48</string>
 	<key>CFBundleVersion</key>
-	<string>Prerelease</string>
+	<string>1</string>
 	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.developer-tools</string>
+	<string>public.app-category.education</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
@@ -157,34 +235,160 @@
 				<string>public.data</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>Emu48 State</string>
+			<string>Emu48 HP49G State</string>
 			<key>UTTypeIconFile</key>
 			<string>XStt</string>
 			<key>UTTypeIdentifier</key>
-			<string>com.dw.emu48-state</string>
+			<string>com.dw.emu48-state-e49</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
+				<key>com.apple.nspboard-type</key>
+				<array>
+					<string>e49</string>
+				</array>
 				<key>com.apple.ostype</key>
 				<array>
-					<string>AStt</string>
-					<string>6Stt</string>
-					<string>EStt</string>
-					<string>SStt</string>
-					<string>GStt</string>
 					<string>XStt</string>
 				</array>
 				<key>public.filename-extension</key>
 				<array>
 					<string>e49</string>
 					<string>E49</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/octet-stream</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Emu48 HP48S[X]/G[X] State</string>
+			<key>UTTypeIconFile</key>
+			<string>XStt</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.dw.emu48-state-e48</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>com.apple.nspboard-type</key>
+				<array>
+					<string>e48</string>
+				</array>
+				<key>com.apple.ostype</key>
+				<array>
+					<string>SStt</string>
+					<string>GStt</string>
+				</array>
+				<key>public.filename-extension</key>
+				<array>
 					<string>e48</string>
 					<string>E48</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/octet-stream</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Emu48 HP39/40G State</string>
+			<key>UTTypeIconFile</key>
+			<string>XStt</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.dw.emu48-state-e39</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>com.apple.nspboard-type</key>
+				<array>
+					<string>e39</string>
+				</array>
+				<key>com.apple.ostype</key>
+				<array>
+					<string>EStt</string>
+				</array>
+				<key>public.filename-extension</key>
+				<array>
 					<string>e39</string>
 					<string>E39</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/octet-stream</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Emu48 HP38G State</string>
+			<key>UTTypeIconFile</key>
+			<string>XStt</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.dw.emu48-state-e38</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>com.apple.nspboard-type</key>
+				<array>
+					<string>e38</string>
+				</array>
+				<key>com.apple.ostype</key>
+				<array>
+					<string>AStt</string>
+					<string>6Stt</string>
+				</array>
+				<key>public.filename-extension</key>
+				<array>
 					<string>e38</string>
 					<string>E38</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/octet-stream</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Win48 State</string>
+			<key>UTTypeIconFile</key>
+			<string>XStt</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.dw.emu48-state-w48</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>com.apple.nspboard-type</key>
+				<array>
+					<string>w48</string>
+				</array>
+				<key>com.apple.ostype</key>
+				<array>
+					<string>SStt</string>
+					<string>GStt</string>
+				</array>
+				<key>public.filename-extension</key>
+				<array>
 					<string>w48</string>
 					<string>W48</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/octet-stream</string>
 				</array>
 			</dict>
 		</dict>
@@ -210,6 +414,10 @@
 					<string>lib</string>
 					<string>LIB</string>
 				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/octet-stream</string>
+				</array>
 			</dict>
 		</dict>
 		<dict>
@@ -227,6 +435,10 @@
 			<dict>
 				<key>com.apple.ostype</key>
 				<string>ERAM</string>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/octet-stream</string>
+				</array>
 			</dict>
 		</dict>
 		<dict>
@@ -244,6 +456,10 @@
 			<dict>
 				<key>com.apple.ostype</key>
 				<string>IROM</string>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/octet-stream</string>
+				</array>
 			</dict>
 		</dict>
 		<dict>
@@ -261,6 +477,10 @@
 				<array>
 					<string>KML</string>
 					<string>kml</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/octet-stream</string>
 				</array>
 			</dict>
 		</dict>

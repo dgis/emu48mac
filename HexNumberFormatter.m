@@ -15,7 +15,7 @@
 {
     if (![anObject isKindOfClass:[NSNumber class]])
         return nil;
-    return [NSString stringWithFormat:@"%05lX", [anObject intValue]];
+    return [NSString stringWithFormat:@"%05dX", [anObject intValue]];
 }
 
 - (BOOL)getObjectValue:(id *)anObject forString:(NSString *)string errorDescription:(NSString **)error

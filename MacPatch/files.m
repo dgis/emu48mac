@@ -174,7 +174,7 @@ BOOL PatchRom(LPCTSTR aFilename)
                     break;
                 if (![numScanner scanCharactersFromSet:hexdigitSet intoString:&data])
                     break;
-                dataLen = [data length];
+                dataLen = (unsigned int)[data length];
                 for (i = 0; i < dataLen; ++i)
                 {
                     PatchNibble(dwAddress, Asc2Nib((BYTE)[data characterAtIndex:i]));
@@ -285,7 +285,7 @@ BOOL MapRom(LPCTSTR szFilename)
                     break;
                 }
                 // Map the file into memory
-                dwRomSize = statInfo.st_size;
+                dwRomSize = (unsigned int)(statInfo.st_size);
                 void *rom = mmap(NULL,
                                  statInfo.st_size,
                                  PROT_READ|PROT_WRITE,
@@ -341,7 +341,7 @@ BOOL CrcPort2(WORD *pwCrc)					// calculate fingerprint of port2
     if (fstat(hPort2File, &statInfo) != 0)
         return NO;
 
-	dwFileSize = statInfo.st_size; // get real filesize
+	dwFileSize = (unsigned int)statInfo.st_size; // get real filesize
 
 	for (dwCount = 0;dwCount < dwFileSize; ++dwCount)
 	{
@@ -358,20 +358,23 @@ BOOL MapPort2(LPCTSTR szFilename)
     struct stat statInfo;
 	DWORD dwFileSizeLo,dwFileSizeHi,dwCount;
 
-	if (pbyPort2 != NULL) return FALSE;
+	if (pbyPort2 != NULL)
+        return FALSE;
 	bPort2Writeable = TRUE;
 	dwPort2Size = 0;						// reset size of port2
 
 //	SetCurrentDirectory(szEmuDirectory);
     BOOL port2IsShared = [[NSUserDefaults standardUserDefaults] boolForKey: @"Port2IsShared"];
-    hPort2File = CreateFile(szFilename,
-							GENERIC_READ|GENERIC_WRITE,
-							port2IsShared ? FILE_SHARE_READ : 0,
-							NULL,
-							OPEN_EXISTING,
-							FILE_ATTRIBUTE_NORMAL,
-							NULL);
-	if (hPort2File == INVALID_HANDLE_VALUE)
+    if([[NSUserDefaults standardUserDefaults] boolForKey: @"Port2Writeable"]) {
+        hPort2File = CreateFile(szFilename,
+                                GENERIC_READ|GENERIC_WRITE,
+                                port2IsShared ? FILE_SHARE_READ : 0,
+                                NULL,
+                                OPEN_EXISTING,
+                                FILE_ATTRIBUTE_NORMAL,
+                                NULL);
+    }
+	if (hPort2File == INVALID_HANDLE_VALUE || hPort2File == 0)
 	{
 		bPort2Writeable = FALSE;
 		hPort2File = CreateFile(szFilename,
@@ -397,7 +400,7 @@ BOOL MapPort2(LPCTSTR szFilename)
 		bPort2Writeable = FALSE;
 		return FALSE;
 	}
-	dwFileSizeLo = statInfo.st_size;
+	dwFileSizeLo = (unsigned int)statInfo.st_size;
 
 	// count number of set bits
 	for (dwCount = 0, dwFileSizeHi = dwFileSizeLo; dwFileSizeHi != 0;dwFileSizeHi >>= 1)
@@ -518,7 +521,7 @@ BOOL NewDocument()
 {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 //	SaveBackup();
-	ResetDocument();
+//    ResetDocument();
 	Chipset.type = cCurrentRomType;
     
 	if (Chipset.type == '6' || Chipset.type == 'A')	// HP38G
@@ -547,7 +550,8 @@ BOOL NewDocument()
 
 		Chipset.cards_status = 0x5;
 
-        id port2file = [defaults objectForKey: @"Port2Filename"];
+        //id port2file = [defaults objectForKey: @"Port2Filename"];
+        id port2file = [[defaults URLForKey: @"Port2Filename"] path];
         if (port2file && [port2file isKindOfClass: [NSString class]] &&
             [port2file length]>0)
             MapPort2([port2file UTF8String]);
@@ -560,7 +564,8 @@ BOOL NewDocument()
 
 		Chipset.cards_status = 0xA;
 
-        id port2file = [defaults objectForKey: @"Port2Filename"];
+        //id port2file = [defaults objectForKey: @"Port2Filename"];
+        id port2file = [[defaults URLForKey: @"Port2Filename"] path];
         if (port2file && [port2file isKindOfClass: [NSString class]] &&
             [port2file length]>0)
             MapPort2([port2file UTF8String]);
@@ -803,6 +808,7 @@ BOOL SaveObject(LPCTSTR szFilename)			// separated stack reading part
 - (id)initWithKml:(NSString *)kmlPath error:(NSError **)outError
 {
     self = [super init];
+    ResetDocument();
     if ([self setKmlFile:kmlPath error:outError])
     {
         NewDocument();
@@ -815,6 +821,7 @@ BOOL SaveObject(LPCTSTR szFilename)			// separated stack reading part
     return self;
 }
 
+// OpenDocument
 - (id)initWithFile:(NSString *)aStateFile error:(NSError **)outError
 {
     self = [super init];
@@ -845,7 +852,7 @@ BOOL SaveObject(LPCTSTR szFilename)			// separated stack reading part
 	}
 
 	// Read and Compare signature
-	lBytesRead = read(hFile, pbyFileSignature, 16);
+	lBytesRead = (unsigned int)read(hFile, pbyFileSignature, 16);
 	switch (pbyFileSignature[0])
 	{
         case 'E':
@@ -882,7 +889,7 @@ BOOL SaveObject(LPCTSTR szFilename)			// separated stack reading part
 	switch (pbyFileSignature[14])
 	{
         case 0xFE: // Win48 2.1 / Emu4x 0.99.x format
-            lBytesRead = read(hFile,&nLength,sizeof(nLength));
+            lBytesRead = (unsigned int)read(hFile,&nLength,sizeof(nLength));
             kmlPath = HeapAlloc(hHeap,0,nLength+1);
             if (kmlPath == NULL)
             {
@@ -890,7 +897,7 @@ BOOL SaveObject(LPCTSTR szFilename)			// separated stack reading part
                 errReason = NSLocalizedString(@"Memory Allocation Failure.",@"");
                 goto restore;
             }
-            lBytesRead = read(hFile, kmlPath, nLength);
+            lBytesRead = (unsigned int)read(hFile, kmlPath, nLength);
             if (nLength != lBytesRead) goto read_err;
             kmlPath[nLength] = 0;
             break;
@@ -903,18 +910,18 @@ BOOL SaveObject(LPCTSTR szFilename)			// separated stack reading part
 	}
     
 	// read chipset size inside file
-	lBytesRead = read(hFile, &lSizeofChipset, sizeof(lSizeofChipset));
+	lBytesRead = (unsigned int)read(hFile, &lSizeofChipset, sizeof(lSizeofChipset));
 	if (lBytesRead != sizeof(lSizeofChipset)) goto read_err;
 	if (lSizeofChipset <= sizeof(Chipset))	// actual or older chipset version
 	{
 		// read chipset content
 		ZeroMemory(&Chipset,sizeof(Chipset));	// init chipset
-		lBytesRead = read(hFile, &Chipset, lSizeofChipset);
+		lBytesRead = (unsigned int)read(hFile, &Chipset, lSizeofChipset);
 	}
 	else									// newer chipset version
 	{
 		// read my used chipset content
-		lBytesRead = read(hFile, &Chipset, sizeof(Chipset));
+		lBytesRead = (unsigned int)read(hFile, &Chipset, sizeof(Chipset));
         
 		// skip rest of chipset
         lseek(hFile, lSizeofChipset-sizeof(Chipset), SEEK_CUR);
@@ -966,7 +973,7 @@ BOOL SaveObject(LPCTSTR szFilename)			// separated stack reading part
 			goto restore;
 		}
         
-		lBytesRead = read(hFile, Chipset.Port0, Chipset.Port0Size*2048);
+		lBytesRead = (unsigned int)read(hFile, Chipset.Port0, Chipset.Port0Size*2048);
 		if (lBytesRead != Chipset.Port0Size*2048) goto read_err;
         
 		if (IsDataPacked(Chipset.Port0,Chipset.Port0Size*2048)) goto read_err;
@@ -982,7 +989,7 @@ BOOL SaveObject(LPCTSTR szFilename)			// separated stack reading part
 			goto restore;
 		}
 
-		lBytesRead = read(hFile, Chipset.Port1, Chipset.Port1Size*2048);
+		lBytesRead = (unsigned int)read(hFile, Chipset.Port1, Chipset.Port1Size*2048);
 		if (lBytesRead != Chipset.Port1Size*2048) goto read_err;
 
 		if (IsDataPacked(Chipset.Port1,Chipset.Port1Size*2048)) goto read_err;
@@ -991,7 +998,9 @@ BOOL SaveObject(LPCTSTR szFilename)			// separated stack reading part
 	// HP48SX/GX
 	if(cCurrentRomType=='S' || cCurrentRomType=='G')
 	{
-        id port2file = [[NSUserDefaults standardUserDefaults] objectForKey: @"Port2Filename"];
+        
+        //id port2file = [[NSUserDefaults standardUserDefaults] objectForKey: @"Port2Filename"];
+        id port2file = [[[NSUserDefaults standardUserDefaults] URLForKey: @"Port2Filename"] path];
         if (port2file && [port2file isKindOfClass: [NSString class]] &&
             [port2file length]>0)
         {
@@ -1020,7 +1029,7 @@ BOOL SaveObject(LPCTSTR szFilename)			// separated stack reading part
 				goto restore;
 			}
             
-			lBytesRead = read(hFile, Chipset.Port2, Chipset.Port2Size*2048);
+			lBytesRead = (unsigned int)read(hFile, Chipset.Port2, Chipset.Port2Size*2048);
 			if (lBytesRead != Chipset.Port2Size*2048) goto read_err;
             
 			if (IsDataPacked(Chipset.Port2,Chipset.Port2Size*2048)) goto read_err;
@@ -1062,7 +1071,8 @@ restore:
 	// HP48SX/GX
 	if(cCurrentRomType=='S' || cCurrentRomType=='G')
 	{
-        id port2file = [[NSUserDefaults standardUserDefaults] objectForKey: @"Port2Filename"];
+        //id port2file = [[NSUserDefaults standardUserDefaults] objectForKey: @"Port2Filename"];
+        id port2file = [[[NSUserDefaults standardUserDefaults] URLForKey: @"Port2Filename"] path];
         if (port2file && [port2file isKindOfClass: [NSString class]] &&
             [port2file length]>0)
         {
@@ -1084,15 +1094,16 @@ restore:
     [super dealloc];
 }
 
+// OnViewScript (next)
 - (BOOL)setKmlFile:(NSString *)aFilename error:(NSError **)outError
 {
     BOOL result = NO;
-    BOOL isRunning = (SM_RUN == nState);
     KmlParseResult *freshKml = nil;
     KmlParser *parser = [[KmlParser alloc] init];
     
-    if (isRunning)
-        SwitchToState(SM_INVALID);
+//    BOOL isRunning = (SM_RUN == nState);
+//    if (isRunning)
+//        SwitchToState(SM_INVALID);
     UnmapRom();
     
     // Determine the KML folder and switch to it
@@ -1114,10 +1125,21 @@ restore:
         // Parse failed, revert changes
         [kml reloadRom];
     }
-    if (isRunning)
-        if (pbyRom) SwitchToState(SM_RUN);
+//    if (isRunning)
+//        if (pbyRom) SwitchToState(SM_RUN);
     return result;
 }
+
+- (BOOL)setKmlFileWithStop:(NSString *)aFilename error:(NSError **)outError
+{
+    BOOL isRunning = (SM_RUN == nState);
+    if (isRunning)
+        SwitchToState(SM_INVALID);
+    [self setKmlFile:(NSString *)aFilename error:(NSError **)outError];
+    if (isRunning)
+        if (pbyRom) SwitchToState(SM_RUN);
+}
+
 
 - (BOOL)saveAs:(NSString *)aStateFile error:(NSError **)outError
 {
@@ -1194,7 +1216,7 @@ restore:
     if ([kmlPath hasPrefix: appPath])
         kmlPath = [kmlPath substringFromIndex: ([appPath length]+1)];
     const char *kmlPathStr = [kmlPath UTF8String];
-	nLength = strlen(kmlPathStr);
+	nLength = (unsigned int)strlen(kmlPathStr);
     write(hFile, &nLength, sizeof(nLength));
     write(hFile, kmlPathStr, nLength);
 
@@ -1223,6 +1245,7 @@ restore:
 
 @implementation CalcBackup
 
+//SaveBackup
 - (id)initWithState:(CalcState *)aState
 {
     self = [super init];
@@ -1244,7 +1267,7 @@ restore:
 	backupChipset.Port1 = malloc(Chipset.Port1Size*2048);
 	CopyMemory(backupChipset.Port1,Chipset.Port1,Chipset.Port1Size*2048);
 	backupChipset.Port2 = NULL;
-	if (Chipset.Port2Size)					// internal port2
+	if (Chipset.Port2 && Chipset.Port2Size)					// internal port2
 	{
 		backupChipset.Port2 = malloc(Chipset.Port2Size*2048);
 		CopyMemory(backupChipset.Port2,Chipset.Port2,Chipset.Port2Size*2048);
@@ -1268,7 +1291,7 @@ restore:
 	{
 //		InitKML(szCurrentKml,TRUE);
 		return NO;
-	}
+    }
 
 	CopyMemory(&Chipset, &backupChipset, sizeof(Chipset));
 	Chipset.Port0 = malloc(Chipset.Port0Size*2048);
@@ -1285,7 +1308,8 @@ restore:
 	{
 		if (cCurrentRomType=='S' || cCurrentRomType=='G') // HP48SX/GX
 		{
-            id port2file = [[NSUserDefaults standardUserDefaults] objectForKey: @"Port2Filename"];
+            //id port2file = [[NSUserDefaults standardUserDefaults] objectForKey: @"Port2Filename"];
+            id port2file = [[[NSUserDefaults standardUserDefaults] URLForKey: @"Port2Filename"] path];
             if (port2file && [port2file isKindOfClass: [NSString class]] &&
                 [port2file length]>0)
                 MapPort2([port2file UTF8String]);

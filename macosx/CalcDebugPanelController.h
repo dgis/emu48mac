@@ -20,7 +20,7 @@ enum {
 @class ToggleToolbarItem;
 
 
-@interface CalcDebugPanelController : NSWindowController
+@interface CalcDebugPanelController : NSWindowController <NSToolbarDelegate>
 {
     IBOutlet NSObjectController *debugController;
     IBOutlet NSArrayController *breakpointArrayController;
@@ -41,7 +41,7 @@ enum {
 - (IBAction)editBreakpoints:(id)sender;
 - (IBAction)fullResetCalc:(id)sender;
 - (IBAction)pauseDebug:(id)sender;
-- (IBAction)resetCalc:(id)sender;
+//- (IBAction)resetCalc:(id)sender;
 - (IBAction)setBreakpoint:(id)sender;
 - (IBAction)stepInto:(id)sender;
 - (IBAction)stepOut:(id)sender;

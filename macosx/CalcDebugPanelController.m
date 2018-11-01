@@ -11,6 +11,7 @@
 #import "CalcDebugger.h"
 #import "CalcBackend.h"
 #import "ToggleToolbarItem.h"
+#include "debugger.h"
 
 
 @implementation CalcDebugPanelController
@@ -35,9 +36,9 @@
     [[self debugModel] pause];
 }
 
-- (IBAction)resetCalc:(id)sender
-{
-}
+//- (IBAction)resetCalc:(id)sender
+//{
+//}
 
 - (IBAction)setBreakpoint:(id)sender
 {
@@ -52,8 +53,8 @@
         [breakpoint setAddress: [NSNumber numberWithUnsignedInt: hexResult]];
         switch ([breakpointStatus intValue])
         {
-            case NSOnState:
-            case NSOffState:
+            case NSControlStateValueOn:
+            case NSControlStateValueOff:
                 break;
             default:
                 [breakpointController addBreakpoint: breakpoint];
@@ -102,7 +103,7 @@
 // set/disable/remove breakpoint for an address
 - (IBAction)breakpointClicked:(id)sender
 {
-    int row = [disassemblyTable selectedRow];
+    int row = (int)[disassemblyTable selectedRow];
     if (row >= 0)
     {
         CalcBreakpoint *breakpoint;
@@ -118,10 +119,10 @@
             [breakpoint setAddress: [NSNumber numberWithUnsignedInt: hexResult]];
             switch ([breakpointStatus intValue])
             {
-                case NSOnState:
+                case NSControlStateValueOn:
                     [breakpointController addBreakpoint: breakpoint];
                     break;
-                case NSOffState:
+                case NSControlStateValueOff:
                     [breakpointController disableBreakpoint: breakpoint];
                     break;
                 default:
@@ -237,7 +238,7 @@
     NSString *tool_label;
     NSString *tool_tooltip;
     NSImage *tool_image;
-    int i, toolcount=[toolbarIdList count];
+    int i, toolcount=(int)[toolbarIdList count];
 
     for (i=0; i<toolcount; ++i)
     {
@@ -312,6 +313,77 @@
 
 - (BOOL)validateToolbarItem:(NSToolbarItem *)item
 {
+    if([item.itemIdentifier isEqualToString:@"Pause"]) {
+        return nDbgState == DBG_RUN || nDbgState == DBG_OFF;
+    } else if([item.itemIdentifier isEqualToString:@"Cont"] || [item.itemIdentifier isEqualToString:@"StepOver"]
+              || [item.itemIdentifier isEqualToString:@"StepInto"] || [item.itemIdentifier isEqualToString:@"StepOut"]) {
+        return nDbgState == DBG_STEPINTO || nDbgState == DBG_STEPOVER || nDbgState == DBG_STEPOUT;
+    } else if([item.itemIdentifier isEqualToString:@"ToggleBreakpoints"]) {
+    }
     return YES;
 }
+
+- (IBAction)codeGotoAddress:(id)sender {
+    NSAlert *alert = [[NSAlert alloc] init];
+    [alert setMessageText:@"Enter address (hexadecimal)"];
+    [alert addButtonWithTitle:@"Ok"];
+    [alert addButtonWithTitle:@"Cancel"];
+    
+    NSTextField *input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 24)];
+    [input setStringValue:@""];
+    
+    [alert setAccessoryView:input];
+    [[alert window] setInitialFirstResponder: input];
+    NSInteger button = [alert runModal];
+    if (button == NSAlertFirstButtonReturn) {
+        NSString * addressText = [input stringValue];
+        unsigned int address = 0;
+        NSScanner * scanner = [NSScanner scannerWithString:addressText];
+        if([scanner scanHexInt:&address]) {
+            [[self debugModel] setCodeAddress:address];
+        }
+    }
+}
+- (IBAction)codeGotoPC:(id)sender {
+    [[self debugModel] setCodeAddress:Chipset.pc];
+}
+
+- (IBAction)memoryGotoAddress:(id)sender {
+    NSAlert *alert = [[NSAlert alloc] init];
+    [alert setMessageText:@"Enter address (hexadecimal)"];
+    [alert addButtonWithTitle:@"Ok"];
+    [alert addButtonWithTitle:@"Cancel"];
+    
+    NSTextField *input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 24)];
+    [input setStringValue:@""];
+    
+    [alert setAccessoryView:input];
+    [[alert window] setInitialFirstResponder: input];
+    NSInteger button = [alert runModal];
+    if (button == NSAlertFirstButtonReturn) {
+        NSString * addressText = [input stringValue];
+        unsigned int address = 0;
+        NSScanner * scanner = [NSScanner scannerWithString:addressText];
+        if([scanner scanHexInt:&address]) {
+            [[self debugModel] setMemoryAddress:address];
+        }
+    }
+}
+
+- (IBAction)memoryGotoPC:(id)sender {
+    [[self debugModel] setMemoryAddress:Chipset.pc];
+}
+
+- (IBAction)memoryGotoD0:(id)sender {
+    [[self debugModel] setMemoryAddress:Chipset.d0];
+}
+
+- (IBAction)memoryGotoD1:(id)sender {
+    [[self debugModel] setMemoryAddress:Chipset.d1];
+}
+
+- (IBAction)memoryGotoStack:(id)sender {
+    [[self debugModel] setMemoryAddress:Chipset.rstk[(Chipset.rstkp-1)&7]];
+}
+
 @end

@@ -61,7 +61,7 @@
     NSString *str = [textField string];
     if (0 == [str length])
     {
-        int selectedRow = [self selectedRow];
+        int selectedRow = (int)[self selectedRow];
         if (selectedRow >= 0)
             [tableContentController removeObjectAtArrangedObjectIndex: selectedRow];
     }

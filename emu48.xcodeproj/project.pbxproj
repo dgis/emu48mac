@@ -71,6 +71,8 @@
 		E5B21D270728F2370095F171 /* engine.m in Sources */ = {isa = PBXBuildFile; fileRef = E5C108A505EE3FBA00A800F4 /* engine.m */; };
 		E5B21D280728F2370095F171 /* timer.m in Sources */ = {isa = PBXBuildFile; fileRef = E5C108C405EE5B1000A800F4 /* timer.m */; };
 		E5B21D2A0728F2370095F171 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A7FEA54F5311CA2CBB /* Cocoa.framework */; };
+		EA02961A2152A95400E0178A /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = EA0296192152A95400E0178A /* README.md */; };
+		EA520ED72125E9DC0092C8D6 /* ReadMe.txt in Resources */ = {isa = PBXBuildFile; fileRef = EA520ED62125E9DC0092C8D6 /* ReadMe.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -198,6 +200,8 @@
 		E5F4815405E621CF00A800C7 /* step_in.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = step_in.tiff; sourceTree = "<group>"; };
 		E5F4815505E621CF00A800C7 /* step_out.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = step_out.tiff; sourceTree = "<group>"; };
 		E5F4815605E621CF00A800C7 /* step_over.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = step_over.tiff; sourceTree = "<group>"; };
+		EA0296192152A95400E0178A /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		EA520ED62125E9DC0092C8D6 /* ReadMe.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = ReadMe.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -233,6 +237,8 @@
 		2A37F4AAFDCFA73011CA2CEA /* emu48mac */ = {
 			isa = PBXGroup;
 			children = (
+				EA0296192152A95400E0178A /* README.md */,
+				EA520ED62125E9DC0092C8D6 /* ReadMe.txt */,
 				2A37F4ABFDCFA73011CA2CEA /* macosx */,
 				2A37F4AFFDCFA73011CA2CEA /* Other Sources */,
 				2A37F4B8FDCFA73011CA2CEA /* Resources */,
@@ -433,7 +439,16 @@
 		2A37F4A9FDCFA73011CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0500;
+				LastUpgradeCheck = 1000;
+				TargetAttributes = {
+					E5B21CF10728F2370095F171 = {
+						SystemCapabilities = {
+							com.apple.Sandbox = {
+								enabled = 0;
+							};
+						};
+					};
+				};
 			};
 			buildConfigurationList = E526BA290F159EBF00BB73D6 /* Build configuration list for PBXProject "emu48" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -469,6 +484,7 @@
 				CE5CC4590F8C574700EFC5FE /* EM48.icns in Resources */,
 				CE5CC45A0F8C574700EFC5FE /* EOBJ.icns in Resources */,
 				CE5CC45B0F8C574700EFC5FE /* ERAM.icns in Resources */,
+				EA02961A2152A95400E0178A /* README.md in Resources */,
 				CE5CC45C0F8C574700EFC5FE /* EROM.icns in Resources */,
 				CE5CC45D0F8C574700EFC5FE /* pause.tiff in Resources */,
 				CE5CC45E0F8C574700EFC5FE /* step_in.tiff in Resources */,
@@ -482,6 +498,7 @@
 				CEC0CE431060EDB40014CD3E /* breakpoints_enabled.tiff in Resources */,
 				CEEE4E851064C21700C75F9A /* breakpoint.tiff in Resources */,
 				CEEE503810650E9F00C75F9A /* breakpoint_off.tiff in Resources */,
+				EA520ED72125E9DC0092C8D6 /* ReadMe.txt in Resources */,
 				CE162021106C2B3F00FC77C1 /* Calculators in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -611,11 +628,11 @@
 		E526BA260F159EBF00BB73D6 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREFIX_HEADER = macosx/emu48mac_Prefix.h;
@@ -625,8 +642,9 @@
 					Core,
 				);
 				INFOPLIST_FILE = macosx/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				OTHER_LDFLAGS = "";
-				PREBINDING = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dw.emu48;
 				PRODUCT_NAME = Emu48;
 				SECTORDER_FLAGS = "";
 				WRAPPER_EXTENSION = app;
@@ -636,10 +654,10 @@
 		E526BA270F159EBF00BB73D6 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_POSTPROCESSING = YES;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_PREFIX_HEADER = macosx/emu48mac_Prefix.h;
 				GENERATE_PKGINFO_FILE = NO;
 				HEADER_SEARCH_PATHS = (
@@ -647,8 +665,9 @@
 					Core,
 				);
 				INFOPLIST_FILE = macosx/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				OTHER_LDFLAGS = "";
-				PREBINDING = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dw.emu48;
 				PRODUCT_NAME = Emu48;
 				SECTORDER_FLAGS = "";
 				WRAPPER_EXTENSION = app;
@@ -658,6 +677,35 @@
 		E526BA2A0F159EBF00BB73D6 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = "";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 			};
 			name = Development;
@@ -665,7 +713,33 @@
 		E526BA2B0F159EBF00BB73D6 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS = NDEBUG;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = "";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				SDKROOT = macosx;
 			};
 			name = Deployment;

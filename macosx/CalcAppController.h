@@ -24,7 +24,7 @@ enum {
 @class KmlLogController;
 
 
-@interface CalcAppController : NSObject
+@interface CalcAppController : NSObject <NSApplicationDelegate>
 {
 //    CalcDebugger *debugger;
     IBOutlet NSMenu *newCalcMenu;
@@ -33,7 +33,7 @@ enum {
     CalcPrefPanelController  *prefController;
     CalcDebugPanelController *debugger;
     KmlLogController *kmlLogController;
-    NSArray *filesToOpen;
+//    NSArray *filesToOpen;
 }
 - (IBAction)openROM:(id)sender;
 - (IBAction)showDebugger:(id)sender;
@@ -49,5 +49,5 @@ enum {
 - (void)populateChangeKmlMenu;
 
 - (void)reviewChangesAndQuitEnumeration:(NSNumber *)cont;
-- (void)reviewChangesAndOpenEnumeration:(NSNumber *)cont;
+//- (void)reviewChangesAndOpenEnumeration:(NSNumber *)cont;
 @end

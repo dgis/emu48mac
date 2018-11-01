@@ -8,7 +8,7 @@
 
 @class CalcPrefController;
 
-@interface CalcPrefPanelController : NSWindowController
+@interface CalcPrefPanelController : NSWindowController<NSWindowDelegate, NSToolbarDelegate>
 {
     IBOutlet NSView *startupView;
     IBOutlet NSView *calculatorsView;

@@ -9,7 +9,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface KmlLogController : NSWindowController
+@interface KmlLogController : NSWindowController<NSToolbarDelegate>
 {
 //    IBOutlet NSTextField *kmlAuthor;
     IBOutlet NSTextView *kmlLog;

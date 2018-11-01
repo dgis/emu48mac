@@ -14,6 +14,7 @@
 #import "external.h"
 #import "CalcView.h"
 #import "lcd.h"
+#import "rawlcd.h"
 #import "CalcDebugger.h"
 #import "EMU48.H"
 #import "IO.H"
@@ -59,13 +60,19 @@ CalcBackend *gSharedCalcBackend = nil;
         timer  = [[CalcTimer alloc] init];
     if (nil == engine)
         engine = [[CalcEngine alloc] init];
+    
+    [self preRun];
 }
 - (void)unloadEngine
 {
-    [engine release]; engine = nil;
-    [timer release];  timer = nil;
-    [debugModel release]; debugModel = nil;
-    [toneGenerator release]; toneGenerator = nil;
+    if(engine)
+        [engine release]; engine = nil;
+    if(timer)
+        [timer release];  timer = nil;
+    if(debugModel)
+        [debugModel release]; debugModel = nil;
+    if(toneGenerator)
+        [toneGenerator release]; toneGenerator = nil;
 }
 
 - (BOOL)makeUntitledCalcWithKml:(NSString *)aFilename error:(NSError **)outError
@@ -86,6 +93,7 @@ CalcBackend *gSharedCalcBackend = nil;
     return NO;
 }
 
+// OnViewScript
 - (void)changeKml:(id)sender
 {
     id path = nil;
@@ -97,7 +105,32 @@ CalcBackend *gSharedCalcBackend = nil;
         if ([pathComps count] < 2)
             path = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent: path];
         NSError *err = nil;
-        [state setKmlFile:path error:&err];
+        [state setKmlFileWithStop:path error:&err];
+        
+        NSView * view = [self calcView];
+        if(view && [view window])
+        {
+            SwitchToState(SM_INVALID);
+            [self finishInitWithViewContainer:[view window] lcdClass:[CalcRawLCD class]];
+            SwitchToState(SM_RUN);
+        }
+    }
+}
+
+- (void)preRun
+{
+    if (engine)
+    {
+        QueryPerformanceFrequency(&lFreq);        // init high resolution counter
+        QueryPerformanceCounter(&lAppStart);
+
+        //SetSpeed(NO);
+        bool realSpeed = [[NSUserDefaults standardUserDefaults] boolForKey: @"RealSpeed"];
+        SetSpeed(realSpeed);
+        nState     = SM_RUN;                    // init state must be <> nNextState
+        nNextState = SM_INVALID;                // go into invalid state
+        [NSThread detachNewThreadSelector:@selector(main) toTarget:engine withObject:nil];
+        while (nState!=nNextState) Sleep(0);    // wait for thread initialized
     }
 }
 
@@ -105,15 +138,6 @@ CalcBackend *gSharedCalcBackend = nil;
 {
     if (engine)
     {
-        QueryPerformanceFrequency(&lFreq);		// init high resolution counter
-        QueryPerformanceCounter(&lAppStart);
-        SetSpeed(NO);
-        nState     = SM_RUN;					// init state must be <> nNextState
-        nNextState = SM_INVALID;				// go into invalid state
-
-        [NSThread detachNewThreadSelector:@selector(main) toTarget:engine withObject:nil];
-        while (nState!=nNextState) Sleep(0);	// wait for thread initialized
-
         if (pbyRom)
         {
             SwitchToState(SM_RUN);
@@ -124,8 +148,11 @@ CalcBackend *gSharedCalcBackend = nil;
 
 - (void)stop
 {
-    [state release]; state = nil;
+    SwitchToState(SM_INVALID);
+    if(state)
+        [state release]; state = nil;
     [self unloadEngine];
+    calcView = nil;
     isRunning = NO;
 }
 
@@ -229,15 +256,15 @@ CalcBackend *gSharedCalcBackend = nil;
 	{
         case TOK_MAP:
             if (byVKeyMap[pLine->nParam[0]&0xFF]&1)
-                [self PressButtonById: pLine->nParam[1]];
+                [self PressButtonById: (unsigned int)(pLine->nParam[1])];
             else
-                [self ReleaseButtonById: pLine->nParam[1]];
+                [self ReleaseButtonById: (unsigned int)(pLine->nParam[1])];
             break;
         case TOK_PRESS:
-            [self PressButtonById: pLine->nParam[0]];
+            [self PressButtonById: (unsigned int)(pLine->nParam[0])];
             break;
         case TOK_RELEASE:
-            [self ReleaseButtonById: pLine->nParam[0]];
+            [self ReleaseButtonById: (unsigned int)(pLine->nParam[0])];
             break;
 //	case TOK_MENUITEM:
 //		PostMessage(hWnd, WM_COMMAND, 0x19C40+(pLine->nParam[0]&0xFF), 0);
@@ -509,18 +536,20 @@ CalcBackend *gSharedCalcBackend = nil;
     [calcView setMainBitmap:[kml mainBitmap] atOrigin:bg.origin];
 
     KmlAnnunciatorC *pAnnunciator = [kml annunciators];
-    int i;
-    for (i = 0; i < 6; ++i)
+    if(pAnnunciator)
     {
-        // position of annunciator
-        CalcRect annunRect = CalcMakeRect(pAnnunciator[i].nDx, pAnnunciator[i].nDy, pAnnunciator[i].nCx, pAnnunciator[i].nCy);
-        [calcView setAnnunciatorRect:annunRect atIndex:i isOn:YES];
-        // position of background
-        annunRect.origin.x = pAnnunciator[i].nOx;
-        annunRect.origin.y = pAnnunciator[i].nOy;
-        [calcView setAnnunciatorRect:annunRect atIndex:i isOn:NO];
+        int i;
+        for (i = 0; i < 6; ++i)
+        {
+            // position of annunciator
+            CalcRect annunRect = CalcMakeRect(pAnnunciator[i].nDx, pAnnunciator[i].nDy, pAnnunciator[i].nCx, pAnnunciator[i].nCy);
+            [calcView setAnnunciatorRect:annunRect atIndex:i isOn:YES];
+            // position of background
+            annunRect.origin.x = pAnnunciator[i].nOx;
+            annunRect.origin.y = pAnnunciator[i].nOy;
+            [calcView setAnnunciatorRect:annunRect atIndex:i isOn:NO];
+        }
     }
-
     [calcView setLCD:[[[aLcdClass alloc] initWithScale:[kml lcdScale] colors:[kml lcdColors]] autorelease] atOrigin:[kml lcdOrigin]];
     [calcView setLcdGrayscaleMode: [[NSUserDefaults standardUserDefaults] boolForKey: @"Grayscale"]];
 #if TARGET_OS_IPHONE

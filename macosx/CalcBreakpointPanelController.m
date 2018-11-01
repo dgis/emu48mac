@@ -36,7 +36,7 @@
     if ([aBreakpoint address])
     {
         NSArray *breakpoints = [breakpointController arrangedObjects];
-        unsigned index = [breakpoints indexOfObject: aBreakpoint];
+        unsigned index = (unsigned int)[breakpoints indexOfObject: aBreakpoint];
         if (NSNotFound != index)
         {
             id breakpoint = [breakpoints objectAtIndex: index];

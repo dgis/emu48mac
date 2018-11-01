@@ -38,6 +38,7 @@ BYTE GetLineCounterBW(VOID);
 VOID StartDisplayBW(BYTE byInitial);
 VOID StopDisplayBW(VOID);
 
+NSDictionary *vkmap = NULL;
 
 @interface CalcView(Private)
 - (void)UpdateContrast:(BYTE)byContrast;
@@ -48,6 +49,88 @@ VOID StopDisplayBW(VOID);
 
 
 @implementation CalcView
+
++ (void) initialize {
+    if (self == [CalcView class]) {
+        // Once-only initializion
+        vkmap = @{
+            @0x33: @0x08, // VK_BACK
+            @0x30: @0x09, // VK_TAB
+            @0x24: @0x0D, // VK_RETURN
+            @0x4C: @0x0D, // VK_RETURN
+            @0x75: @0x2E, // VK_DELETE
+            @0x72: @0x2D, // VK_INSERT
+            @0x38: @0x10, // VK_SHIFT
+            @0x3B: @0x11, // VK_CONTROL
+            @0x35: @0x1B, // VK_ESCAPE
+            @0x31: @0x20, // VK_SPACE
+            @0x7B: @0x25, // VK_LEFT
+            @0x7E: @0x26, // VK_UP
+            @0x7C: @0x27, // VK_RIGHT
+            @0x7D: @0x28, // VK_DOWN
+            @0x1D: @0x30, // 0
+            @0x12: @0x31, // 1
+            @0x13: @0x32, // 2
+            @0x14: @0x33, // 3
+            @0x15: @0x34, // 4
+            @0x17: @0x35, // 5
+            @0x16: @0x36, // 6
+            @0x1A: @0x37, // 7
+            @0x1C: @0x38, // 8
+            @0x19: @0x39, // 9
+            @0x00: @-1, //@0x41, // A
+            @0x0B: @-1, //@0x42, // B
+            @0x08: @-1, //@0x43, // C
+            @0x02: @-1, //@0x44, // D
+            @0x0E: @-1, //@0x45, // E
+            @0x03: @-1, //@0x46, // F
+            @0x05: @-1, //@0x47, // G
+            @0x04: @-1, //@0x48, // H
+            @0x22: @-1, //@0x49, // I
+            @0x26: @-1, //@0x4A, // J
+            @0x28: @-1, //@0x4B, // K
+            @0x25: @-1, //@0x4C, // L
+            @0x2E: @-1, //@0x4D, // M
+            @0x2D: @-1, //@0x4E, // N
+            @0x1F: @-1, //@0x4F, // O
+            @0x23: @-1, //@0x50, // P
+            @0x0C: @-1, //@0x51, // Q
+            @0x0F: @-1, //@0x52, // R
+            @0x01: @-1, //@0x53, // S
+            @0x11: @-1, //@0x54, // T
+            @0x20: @-1, //@0x55, // U
+            @0x09: @-1, //@0x56, // V
+            @0x0D: @-1, //@0x57, // W
+            @0x07: @-1, //@0x58, // X
+            @0x10: @-1, //@0x59, // Y
+            @0x06: @-1, //@0x5A, // Z
+            @0x52: @0x60, // VK_NUMPAD0
+            @0x53: @0x61, // VK_NUMPAD1
+            @0x54: @0x62, // VK_NUMPAD2
+            @0x55: @0x63, // VK_NUMPAD3
+            @0x56: @0x64, // VK_NUMPAD4
+            @0x57: @0x65, // VK_NUMPAD5
+            @0x58: @0x66, // VK_NUMPAD6
+            @0x59: @0x67, // VK_NUMPAD7
+            @0x5B: @0x68, // VK_NUMPAD8
+            @0x5C: @0x69, // VK_NUMPAD9
+            @0x43: @0x6A, // VK_MULTIPLY
+            @0x45: @0x6B, // VK_ADD
+            @0x4E: @0x6D, // VK_SUBTRACT
+            @0x41: @0x6E, // VK_DECIMAL
+            @0x4B: @0x6F, // VK_DIVIDE
+            @0x29: @0xBA, // VK_OEM_1 (:;)
+            @0x2B: @0xBC, // VK_OEM_COMMA
+            @0x2F: @0xBE, // VK_OEM_PERIOD
+            @0x2C: @0xBF, // VK_OEM_2 (?)
+            @0x32: @0xC0, // VK_OEM_3 (~)
+            @0x21: @0xDB, // VK_OEM_4 ([{)
+            @0x27: @0xDE  // VK_OEM_7 (‘ »)
+        };
+        [vkmap retain];
+    }
+    // Initialization for this class and any subclasses
+}
 
 - (id)initWithFrame:(NSRect)aFrame
 {
@@ -97,7 +180,7 @@ VOID StopDisplayBW(VOID);
 
 - (void)drawRect:(NSRect)aRect
 {
-    [mainBitmap drawAtPoint:mainBitmapOrigin fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
+    [mainBitmap drawAtPoint:mainBitmapOrigin fromRect:NSZeroRect operation:NSCompositingOperationCopy fraction:1.0];
 
     CalcImage *annunciator = mainBitmap;
     int i;
@@ -115,7 +198,7 @@ VOID StopDisplayBW(VOID);
                 annunSrcRect = annunciatorOff[i];
                 annunSrcRect.origin.y += ([mainBitmap size].height - [self bounds].size.height);
             }
-            [annunciator drawInRect:annunciatorOff[i] fromRect:annunSrcRect operation:NSCompositeCopy fraction:1.0];
+            [annunciator drawInRect:annunciatorOff[i] fromRect:annunSrcRect operation:NSCompositingOperationCopy fraction:1.0];
         }
     }
 
@@ -134,7 +217,7 @@ VOID StopDisplayBW(VOID);
             case 0: // bitmap key
                 if (drawingButtonPressed)
                 {
-                    [button drawInRect:displayButtonRect fromRect:srcButtonRectPressed operation:NSCompositeCopy fraction:1.0];
+                    [button drawInRect:displayButtonRect fromRect:srcButtonRectPressed operation:NSCompositingOperationCopy fraction:1.0];
                 }
                 break;
             case 1: // shift key to right down
@@ -150,7 +233,7 @@ VOID StopDisplayBW(VOID);
                     NSRect offsetRectDst = NSOffsetRect(displayButtonRect, 3., 2.);
                     offsetRectDst.size.width  -= 5.;
                     offsetRectDst.size.height -= 5.;
-                    [button drawInRect:offsetRectDst fromRect:offsetRectSrc operation:NSCompositeCopy fraction:1.0];
+                    [button drawInRect:offsetRectDst fromRect:offsetRectSrc operation:NSCompositingOperationCopy fraction:1.0];
                     [[NSColor blackColor] setStroke];
                     [NSBezierPath strokeLineFromPoint:NSMakePoint(x0, y0) toPoint:NSMakePoint(x1, y0)];
                     [NSBezierPath strokeLineFromPoint:NSMakePoint(x0, y0) toPoint:NSMakePoint(x0, y1)];
@@ -164,7 +247,7 @@ VOID StopDisplayBW(VOID);
             case 3: // invert key color, even in display
                 if (drawingButtonPressed)
                 {
-                    CGContextRef ctxt = [[NSGraphicsContext currentContext] graphicsPort];
+                    CGContextRef ctxt = [[NSGraphicsContext currentContext] CGContext];
                     CGContextSetBlendMode(ctxt, kCGBlendModeDifference);
                     CGContextSetGrayFillColor(ctxt, 1.0, 1.0);
                     CGContextFillRect(ctxt, *(CGRect *)&displayButtonRect);
@@ -373,7 +456,7 @@ VOID StopDisplayBW(VOID);
 	{
 #if defined DEBUG_DISPLAY
 		{
-			NSLog(@"%.5lx: Update Display Pointer", Chipset.pc);
+			NSLog(@"%.5x: Update Display Pointer", Chipset.pc);
 		}
 #endif
 
@@ -398,17 +481,20 @@ VOID StopDisplayBW(VOID);
 
 - (void)UpdateMainDisplay
 {
-    [lcd performSelectorOnMainThread:@selector(UpdateMain) withObject:nil waitUntilDone:NO];
+//    [lcd performSelectorOnMainThread:@selector(UpdateMain) withObject:nil waitUntilDone:NO];
+    [lcd performSelectorOnMainThread:@selector(UpdateMain) withObject:nil waitUntilDone:YES];
 }
 
 - (void)UpdateMenuDisplay
 {
-    [lcd performSelectorOnMainThread:@selector(UpdateMenu) withObject:nil waitUntilDone:NO];
+//    [lcd performSelectorOnMainThread:@selector(UpdateMenu) withObject:nil waitUntilDone:NO];
+    [lcd performSelectorOnMainThread:@selector(UpdateMenu) withObject:nil waitUntilDone:YES];
 }
 
 - (void)RefreshDisp0
 {
-    [lcd performSelectorOnMainThread:@selector(RefreshDisp0) withObject:nil waitUntilDone:NO];
+//    [lcd performSelectorOnMainThread:@selector(RefreshDisp0) withObject:nil waitUntilDone:NO];
+    [lcd performSelectorOnMainThread:@selector(RefreshDisp0) withObject:nil waitUntilDone:YES];
 }
 
 - (void)WriteToMain:(CalcLCDWriteArgument *)args
@@ -430,7 +516,7 @@ VOID StopDisplayBW(VOID);
 - (void)UpdateAnnunciators
 {
     const BYTE annCtrl[] = { LA1, LA2, LA3, LA4, LA5, LA6 };
-    CalcBackend *backend = [CalcBackend sharedBackend];
+    //CalcBackend *backend = [CalcBackend sharedBackend];
     BYTE c = (BYTE)(Chipset.IORam[ANNCTRL] | (Chipset.IORam[ANNCTRL+1]<<4));
 	// switch annunciators off if timer stopped
 	if ((c & AON) == 0 || (Chipset.IORam[TIMER2_CTRL] & RUN) == 0)
@@ -526,35 +612,22 @@ VOID StopDisplayBW(VOID);
 
 - (BOOL)keyEvent:(NSEvent *)theEvent pressed:(BOOL)aPressed
 {
-    NSString *chars = [theEvent characters];
     unsigned modifiers = [theEvent modifierFlags];
-    if (0 == (modifiers & NSCommandKeyMask) && [chars length] > 0)
-    {
-        CalcBackend *backend = [CalcBackend sharedBackend];
-        unichar key = [chars characterAtIndex: 0];
-        switch (key)
-        {
-            case 127:
-            case NSDeleteFunctionKey:
-                key = 8;
-                break;
-            case NSLeftArrowFunctionKey:
-                key = 37;
-                break;
-            case NSUpArrowFunctionKey:
-                key = 38;
-                break;
-            case NSRightArrowFunctionKey:
-                key = 39;
-                break;
-            case NSDownArrowFunctionKey:
-                key = 40;
-                break;
-            default:
-                break;
+    if((modifiers & NSEventModifierFlagCommand) == 0) {
+        int macosKeycode = theEvent.keyCode;
+        NSNumber * keycode = [NSNumber numberWithInt:macosKeycode];
+        id windowsKeycode = vkmap[keycode];
+        if(windowsKeycode) {
+            int key = [windowsKeycode intValue];
+            if(key == -1) {
+                NSString * chars = [[theEvent characters] uppercaseString];
+                if ([chars length] > 0)
+                    key = (BYTE)[chars characterAtIndex: 0];
+            }
+            CalcBackend *backend = [CalcBackend sharedBackend];
+            [backend runKey:key pressed:aPressed];
+            return YES;
         }
-        [backend runKey:key pressed:aPressed];
-        return YES;
     }
     return NO;
 }
@@ -578,21 +651,21 @@ VOID StopDisplayBW(VOID);
 - (void)flagsChanged:(NSEvent *)theEvent
 {
     unsigned modifiers = [theEvent modifierFlags];
-    if (modifiers & NSCommandKeyMask)
+    if (modifiers & NSEventModifierFlagCommand)
     {
         [super flagsChanged: theEvent];
     }
     else
     {
         CalcBackend *backend = [CalcBackend sharedBackend];
-        if (modifiers & NSAlternateKeyMask)
+        if (modifiers & NSEventModifierFlagOption)
             [backend runKey:17 pressed:YES];
-        if (modifiers & NSControlKeyMask)
+        if (modifiers & NSEventModifierFlagControl)
             [backend runKey:16 pressed:YES];
         
-        if (0 == (modifiers & NSAlternateKeyMask))
+        if (0 == (modifiers & NSEventModifierFlagOption))
             [backend runKey:17 pressed:NO];
-        if (0 == (modifiers & NSControlKeyMask))
+        if (0 == (modifiers & NSEventModifierFlagControl))
             [backend runKey:16 pressed:NO];
     }
 }

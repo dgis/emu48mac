@@ -30,16 +30,16 @@
 - (void)drawWithFrame:(NSRect)cellFrame inView:(NSView *)controlView
 {
     NSImage *img = nil;
-    int state = [self state];
+    int state = (int)[self state];
     switch (state)
     {
-        case NSOnState:
+        case NSControlStateValueOn:
             img = [self image];
             break;
-        case NSOffState:
+        case NSControlStateValueOff:
             img = [self alternateImage];
             break;
-        case NSMixedState:
+        case NSControlStateValueMixed:
             img = [self mixedImage];
             break;
         default:
@@ -61,7 +61,8 @@
         else
             imageFrame.origin.y += ceil((cellFrame.size.height - imageFrame.size.height) / 2);
         
-        [img compositeToPoint:imageFrame.origin operation:NSCompositeSourceOver];
+        CGPoint origin = CGPointMake(imageFrame.origin.x, imageFrame.origin.y - imageSize.height);
+        [img drawAtPoint:origin fromRect:NSMakeRect(.0f, .0f, imageSize.width, imageSize.height) operation:NSCompositingOperationSourceOver fraction:1.0f];
     }
 }
 @end

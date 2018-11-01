@@ -10,7 +10,8 @@
 #import "OPS.H"
 #import "CalcBackend.h"
 
-#define MAXCODELINES     15					// number of lines in code window
+//#define MAXCODELINES     15                    // number of lines in code window
+#define MAXCODELINES     22                    // number of lines in code window
 #define MAXMEMLINES       6					// number of lines in memory window
 #define MAXMEMITEMS      16					// number of address items in a memory window line
 #define MAXBREAKPOINTS  256					// max. number of breakpoints
@@ -54,7 +55,9 @@ static NSString *RegToStr(BYTE *pReg, WORD wNib)
 @end
 
 
-@implementation CalcDebugger
+@implementation CalcDebugger{
+    DWORD  dwAdrMem;
+}
 
 #if TARGET_OS_IPHONE || (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5)
 + (NSSet *)keyPathsForValuesAffectingDisassembly
@@ -88,6 +91,7 @@ static NSString *RegToStr(BYTE *pReg, WORD wNib)
         regUpdated  = [[NSMutableDictionary alloc] init];
         dbgOldState = DBG_RUN;
         breakpointsEnabled = YES;
+        dwAdrMem = 0;
     }
     return self;
 }
@@ -127,7 +131,7 @@ static NSString *RegToStr(BYTE *pReg, WORD wNib)
 	for (i = 0; i < MAXCODELINES; ++i)
 	{
 		j = sprintf(szAddress,
-                    (addr == Chipset.pc) ? "%05lX-%c " : "%05lX   ",
+                    (addr == Chipset.pc) ? "%05X-%c " : "%05X   ",
                     addr,breakType ? 'R' : '>');
         breakpointStatus = [self checkBreakpointAtAddress:addr range:1 type:BP_EXEC];
 		addr = disassemble(addr,&szAddress[j],VIEW_SHORT);
@@ -292,7 +296,7 @@ static NSString *RegToStr(BYTE *pReg, WORD wNib)
     NSMutableArray *result = [[NSMutableArray alloc] init];
 
 	szItem[2] = 0;							// end of string
-    DWORD addr = 0; //aIndex * (MAXMEMITEMS & (512*2048 - 1));
+    DWORD addr = dwAdrMem; //aIndex * (MAXMEMITEMS & (512*2048 - 1));
 
 	for (i = 0; i < MAXMEMLINES; ++i)
 	{
@@ -301,7 +305,7 @@ static NSString *RegToStr(BYTE *pReg, WORD wNib)
         bytes = [NSMutableArray arrayWithCapacity: MAXMEMITEMS];
 
         Npeek(byLineData, addr, MAXMEMITEMS);
-        [memline setObject:[NSString stringWithFormat:@"%05lX", addr] forKey:@"address"];
+        [memline setObject:[NSString stringWithFormat:@"%05X", addr] forKey:@"address"];
         for (k = 0, j = 0; j < MAXMEMITEMS; ++j)
         {
             // read from fetched data line
@@ -322,7 +326,7 @@ static NSString *RegToStr(BYTE *pReg, WORD wNib)
         [memline setObject:[bytes componentsJoinedByString: @" "] forKey:@"bytes"];
         [memline setObject:[NSString stringWithUTF8String: szBuffer] forKey:@"text"];
         [result addObject: memline];
-        addr = (addr + MAXMEMITEMS) & (512*2048 - 1);
+        addr = (addr + MAXMEMITEMS) & 0xFFFFF; //(512*2048 - 1);
         [pool release];
     }
     [self setMemory: result];
@@ -673,6 +677,19 @@ static NSString *RegToStr(BYTE *pReg, WORD wNib)
     }
     [self setHistory: nil];
 }
+
+- (void)setCodeAddress:(DWORD)address {
+    [self UpdateDisassemblyAtAddress: address];
+    [self updateExceptDisassembly];
+}
+
+- (DWORD)getMemoryAddress {
+    return dwAdrMem;
+}
+- (void)setMemoryAddress:(DWORD)address {
+    dwAdrMem = address;
+    [self UpdateMemory];
+}
 @end
 
 
@@ -700,7 +717,7 @@ static NSString *RegToStr(BYTE *pReg, WORD wNib)
 #if TARGET_OS_IPHONE
     return [[self address] isEqualToNumber: [anObject address]];
 #else
-    return [[self address] isEqualTo: [anObject address]];
+    return [[self address] isEqualTo: [(CalcBreakpoint*)anObject address]];
 #endif
 }
 

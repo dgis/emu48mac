@@ -25,11 +25,10 @@ VOID UpdateWindowStatus(VOID){}
 
 - (IBAction)openROM:(id)sender
 {
-    int result;
     NSOpenPanel *oPanel = [NSOpenPanel openPanel];
     [oPanel setResolvesAliases: YES];
     [oPanel setAllowsMultipleSelection: NO];
-    result = [oPanel runModal];
+    [oPanel runModal];
 }
 
 - (IBAction)showDebugger:(id)sender
@@ -81,7 +80,7 @@ VOID UpdateWindowStatus(VOID){}
 - (void) dealloc
 {
     [debugger release];
-    [filesToOpen release];
+//    [filesToOpen release];
     [kmlLogController release];
     [prefController release];
     [documentController release];
@@ -128,15 +127,20 @@ VOID UpdateWindowStatus(VOID){}
     [NSApp replyToApplicationShouldTerminate: [cont boolValue]];
 }
 
-- (void)reviewChangesAndOpenEnumeration:(NSNumber *)cont
-{
-    if ([cont boolValue] && filesToOpen)
-    {
-        [self application:NSApp openFiles:filesToOpen];
-    }
-    [filesToOpen release]; filesToOpen = nil;
-}
+//- (void)reviewChangesAndOpenEnumeration:(NSNumber *)cont
+//{
+//    if ([cont boolValue] && filesToOpen)
+//    {
+//        [self application:NSApp openFiles:filesToOpen];
+//    }
+//    [filesToOpen release]; filesToOpen = nil;
+//}
 
+- (BOOL)applicationShouldOpenUntitledFile:(NSApplication *)sender
+{
+    BOOL reloadFiles = [[NSUserDefaults standardUserDefaults] boolForKey: @"ReloadFiles"];
+    return reloadFiles;
+}
 - (BOOL)applicationOpenUntitledFile:(NSApplication *)app
 {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -175,9 +179,9 @@ VOID UpdateWindowStatus(VOID){}
 - (void)populateNewCalcMenu
 {
     SEL newCalcAction = @selector(newDocument:);
-    [newCalcMenu setMenuChangedMessagesEnabled: NO];
+    //[newCalcMenu setMenuChangedMessagesEnabled: NO];
     int i;
-    int calcCount = [newCalcMenu numberOfItems];
+    int calcCount = (int)[newCalcMenu numberOfItems];
     for (i = 0; i < calcCount; ++i)
         [newCalcMenu removeItemAtIndex: 0];
     NSArray *calculators = [[[self prefController] prefModel] calculators];
@@ -186,7 +190,7 @@ VOID UpdateWindowStatus(VOID){}
     NSString *calcPath;
     NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
     NSMenuItem *mi;
-    calcCount = [calculators count];
+    calcCount = (int)[calculators count];
     if (calcCount > 0)
     {
         calc = [calculators objectAtIndex: defaultCalc];
@@ -224,15 +228,15 @@ VOID UpdateWindowStatus(VOID){}
         [newCalcMenu addItem: mi];
         [mi release];
     }
-    [newCalcMenu setMenuChangedMessagesEnabled: YES];
+    //[newCalcMenu setMenuChangedMessagesEnabled: YES];
 }
 
 - (void)populateChangeKmlMenu
 {
     CalcBackend *backend = [CalcBackend sharedBackend];
-    [kmlMenu setMenuChangedMessagesEnabled: NO];
+    //[kmlMenu setMenuChangedMessagesEnabled: NO];
     int i;
-    int kmlCount = [kmlMenu numberOfItems];
+    int kmlCount = (int)[kmlMenu numberOfItems];
     for (i = 0; i < kmlCount; ++i)
         [kmlMenu removeItemAtIndex: 0];
     NSArray *calculators = [[[self prefController] prefModel] calculators];
@@ -242,7 +246,7 @@ VOID UpdateWindowStatus(VOID){}
     NSString *calcPath;
     NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
     SEL changeKmlAction = @selector(changeKml:);
-    kmlCount = [calculators count];
+    kmlCount = (int)[calculators count];
     for (i = 0; i < kmlCount; ++i)
     {
         calc  = [calculators objectAtIndex: i];
@@ -262,7 +266,7 @@ VOID UpdateWindowStatus(VOID){}
         [kmlMenu addItem: mi];
         [mi release];
     }
-    [kmlMenu setMenuChangedMessagesEnabled: YES];
+    //[kmlMenu setMenuChangedMessagesEnabled: YES];
 }
 
 - (BOOL)validateMenuItem:(NSMenuItem *)sender
